@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,10 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${poppins.variable} antialiased`}
-      >
-        {children}
+      <body className={`${inter.variable} ${poppins.variable} antialiased`}>
+        <AuthProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,27 +1,49 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import AuthCard from "./AuthCard";
+import OTPInput from "./OTPInput";
 import { Button } from "@/components/ui/button";
+import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const OTP_LENGTH = 6;
 const COUNTDOWN_SECONDS = 44;
 
+const schema = z.object({
+  code: z.string().length(OTP_LENGTH, "Enter the 6-digit code"),
+});
+
+type FormData = z.infer<typeof schema>;
+
 export default function OTPForm() {
   const router = useRouter();
-  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "your email";
+  const purpose = searchParams.get("purpose") === "register" ? "register" : "reset-password";
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const canResend = countdown <= 0;
 
-  // Countdown timer
+  const {
+    control,
+    handleSubmit,
+    resetField,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { code: "" },
+  });
+
   useEffect(() => {
     if (countdown <= 0) {
-      setCanResend(true);
       return;
     }
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -34,166 +56,99 @@ export default function OTPForm() {
     return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
-  const handleChange = (index: number, value: string) => {
-    // Only allow single digit
-    const digit = value.replace(/\D/g, "").slice(-1);
-    const newOtp = [...otp];
-    newOtp[index] = digit;
-    setOtp(newOtp);
-
-    // Auto-advance
-    if (digit && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace") {
-      if (!otp[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-      const newOtp = [...otp];
-      newOtp[index] = "";
-      setOtp(newOtp);
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
-    const newOtp = [...otp];
-    pasted.split("").forEach((char, i) => {
-      newOtp[i] = char;
-    });
-    setOtp(newOtp);
-    inputRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
-  };
-
   const handleResend = () => {
     setCountdown(COUNTDOWN_SECONDS);
-    setCanResend(false);
-    setOtp(Array(OTP_LENGTH).fill(""));
-    inputRefs.current[0]?.focus();
+    resetField("code");
     toast.info("New code sent to your email.");
   };
 
-  const handleVerify = async () => {
-    const code = otp.join("");
-    if (code.length < OTP_LENGTH) {
-      toast.error("Please enter the full 6-digit code.");
-      return;
-    }
+  const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      // TODO: await authService.verifyOtp({ code })
-      await new Promise((res) => setTimeout(res, 800));
-      toast.success("Identity verified!");
-      router.push("/reset-password");
-    } catch {
-      toast.error("Invalid code. Please try again.");
+      await authService.verifyOtp({ email, code: data.code, purpose });
+      toast.success("Verification complete.");
+      router.push(purpose === "register" ? "/login" : "/login?reset=verified");
+    } catch (error: unknown) {
+      toast.error(getAuthErrorMessage(error, "Invalid code. Please try again."));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Hero image placeholder matching Figma */}
-      <div
-        className="w-full h-36 rounded-2xl overflow-hidden flex items-center justify-center"
-        style={{ backgroundColor: "#E8E0D0" }}
-      >
-        <div className="text-center space-y-1">
-          <div
-            className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center"
-            style={{ backgroundColor: "#C1502E" }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="11" width="18" height="11" rx="2" stroke="white" strokeWidth="1.5"/>
-              <path d="M7 11V7a5 5 0 0110 0v4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-              <circle cx="12" cy="16" r="1.5" fill="white"/>
-            </svg>
-          </div>
-          <p className="text-xs" style={{ color: "#8A8070" }}>Verification Code</p>
-        </div>
-      </div>
-
-      {/* Heading */}
-      <div className="text-center space-y-2">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: "#1A1A1A", fontFamily: "var(--font-heading)" }}
-        >
-          Verify Identity
-        </h1>
-        <p className="text-sm" style={{ color: "#6B6B68" }}>
-          We&apos;ve sent a 6-digit code to your registered email address.
-        </p>
-      </div>
-
-      {/* OTP Inputs */}
-      <div className="flex gap-2 justify-center" onPaste={handlePaste}>
-        {otp.map((digit, index) => (
-          <input
-            key={index}
-            ref={(el) => { inputRefs.current[index] = el; }}
-            type="text"
-            inputMode="numeric"
-            maxLength={1}
-            value={digit}
-            onChange={(e) => handleChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all"
-            style={{
-              backgroundColor: "white",
-              borderColor: digit ? "#C1502E" : "#D5CCBC",
-              color: "#1A1A1A",
-              caretColor: "#C1502E",
-            }}
-            onFocus={(e) =>
-              (e.target.style.borderColor = "#C1502E")
-            }
-            onBlur={(e) =>
-              (e.target.style.borderColor = digit ? "#C1502E" : "#D5CCBC")
-            }
+    <AuthCard>
+      <form onSubmit={handleSubmit(onSubmit)} className="px-[19px] pt-[34px] lg:px-[42px] lg:pt-[52px]">
+        <div className="h-[243px] overflow-hidden rounded-[5px]">
+          <Image
+            src="/auth-otp-hero.png"
+            alt="Verification code"
+            width={497}
+            height={372}
+            className="h-full w-full object-cover"
           />
-        ))}
-      </div>
+        </div>
 
-      {/* Resend */}
-      <div className="text-center space-y-1">
-        {!canResend ? (
-          <p className="text-sm font-semibold" style={{ color: "#C1502E" }}>
-            Resend in {formatTime(countdown)}
+        <div className="mt-[44px] space-y-[11px] text-center">
+          <h1 className="font-serif text-[30px] font-bold leading-none tracking-[-0.03em] text-[#252323]">
+            Verify Identity
+          </h1>
+          <p className="mx-auto max-w-[278px] text-[16px] leading-[1.38] text-[#6d5d54]">
+            We&apos;ve sent a 6-digit code to your registered email address.
           </p>
-        ) : null}
-        <p className="text-sm" style={{ color: "#6B6B68" }}>
-          Didn&apos;t receive the code?{" "}
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={!canResend}
-            className="font-semibold hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ color: "#C1502E" }}
-          >
-            Resend
-          </button>
-        </p>
-      </div>
+        </div>
 
-      {/* Verify button */}
-      <Button
-        onClick={handleVerify}
-        className="w-full font-bold h-12 text-base rounded-xl tracking-widest"
-        disabled={isLoading}
-        style={{ backgroundColor: "#C1502E", color: "white" }}
-      >
-        {isLoading ? (
-          <><Loader2 size={18} className="mr-2 animate-spin" /> Verifying...</>
-        ) : (
-          "VERIFY"
-        )}
-      </Button>
-    </div>
+        <div className="mt-[41px] space-y-2">
+          <Controller
+            control={control}
+            name="code"
+            render={({ field }) => (
+              <OTPInput
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isLoading}
+                error={!!errors.code}
+              />
+            )}
+          />
+          {errors.code ? (
+            <p className="text-center text-xs font-medium text-destructive">{errors.code.message}</p>
+          ) : null}
+        </div>
+
+        <div className="mt-[30px] space-y-[12px] text-center">
+          {!canResend ? (
+            <p className="text-[14px] font-bold text-[#b23a19]">
+              Resend in {formatTime(countdown)}
+            </p>
+          ) : null}
+          <p className="text-[13px] font-medium text-[#b8aea8]">
+            Didn&apos;t receive the code?{" "}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={!canResend}
+              className="font-medium text-[#b8aea8] underline hover:text-[#b23a19] disabled:cursor-not-allowed disabled:opacity-80"
+            >
+              Resend
+            </button>
+          </p>
+        </div>
+
+        <Button
+          type="submit"
+          className="mt-[48px] h-[49px] w-full rounded-[8px] bg-[#af3718] text-[14px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_5px_10px_rgba(175,55,24,0.25)] hover:bg-[#9f3216]"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Verifying
+            </>
+          ) : (
+            "VERIFY"
+          )}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }

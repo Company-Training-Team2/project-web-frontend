@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   ReactNode,
 } from "react";
@@ -22,18 +21,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => {
     const savedUser = authService.getUser();
     const token = authService.getToken();
-    if (savedUser && token) {
-      setUser(savedUser);
-    }
-    setIsLoading(false);
-  }, []);
+    return savedUser && token ? savedUser : null;
+  });
+  const [isLoading] = useState(false);
+  const router = useRouter();
 
   const login = async (payload: LoginPayload) => {
     const data = await authService.login(payload);

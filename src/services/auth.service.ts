@@ -1,5 +1,3 @@
-import apiClient from "@/lib/axios";
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface LoginPayload {
@@ -10,6 +8,7 @@ export interface LoginPayload {
 export interface RegisterPayload {
   name: string;
   email: string;
+  phone: string;
   password: string;
   confirmPassword: string;
 }
@@ -22,6 +21,12 @@ export interface ResetPasswordPayload {
   token: string;
   password: string;
   confirmPassword: string;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  code: string;
+  purpose: "register" | "reset-password";
 }
 
 export interface AuthUser {
@@ -46,6 +51,25 @@ const MOCK_USER: AuthUser = {
 };
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+export function getAuthErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+}
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
@@ -76,13 +100,21 @@ export const authService = {
   // TODO: replace mock with → apiClient.post("/auth/forgot-password", payload)
   async forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
     await delay(800);
-    console.log("Reset link sent to:", payload.email);
+    void payload;
+  },
+
+  // TODO: replace mock with → apiClient.post("/auth/verify-otp", payload)
+  async verifyOtp(payload: VerifyOtpPayload): Promise<void> {
+    await delay(700);
+    if (payload.code.length !== 6) {
+      throw { response: { data: { message: "Enter the 6-digit verification code" } } };
+    }
   },
 
   // TODO: replace mock with → apiClient.post("/auth/reset-password", payload)
   async resetPassword(payload: ResetPasswordPayload): Promise<void> {
     await delay(800);
-    console.log("Password reset for token:", payload.token);
+    void payload;
   },
 
   logout() {

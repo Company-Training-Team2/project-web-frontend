@@ -5,15 +5,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import AuthCard from "./AuthCard";
+import FormField from "./FormField";
 import PasswordInput from "./PasswordInput";
 import SocialLogin from "./SocialLogin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
+import { getAuthErrorMessage } from "@/services/auth.service";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -37,112 +39,104 @@ export default function LoginForm() {
     try {
       await login(data);
       toast.success("Welcome back!");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Invalid email or password.");
+    } catch (error: unknown) {
+      toast.error(getAuthErrorMessage(error, "Invalid email or password."));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-5">
-      {/* Heading */}
-      <div className="space-y-1">
-        <h1
-          className="text-3xl font-bold"
-          style={{ color: "#1A1A1A", fontFamily: "var(--font-heading)" }}
-        >
-          Welcome back
+    <AuthCard>
+      <div className="px-[16px] pt-[18px] lg:px-[42px] lg:pt-[82px]">
+        <h1 className="font-serif text-[31px] font-bold leading-none tracking-[-0.02em] text-[#b23a19]">
+          EventHub
         </h1>
-        <p className="text-sm" style={{ color: "#6B6B68" }}>
-          Please enter your details to access your curated events and vendor lists.
-        </p>
-      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email */}
-        <div className="space-y-1.5">
-          <Label htmlFor="email" style={{ color: "#1A1A1A" }}>Email Address</Label>
-          <div className="relative">
-            <Mail
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2"
-              style={{ color: "#8A8070" }}
-            />
-            <Input
-              id="email"
-              type="email"
-              placeholder="Team2Off@SpaceTech.com"
-              className="pl-9"
-              {...register("email")}
-              style={{ backgroundColor: "white", borderColor: "#D5CCBC" }}
-            />
-          </div>
-          {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
+        <div className="mt-[54px] space-y-[18px] lg:mt-[68px]">
+          <h2 className="font-serif text-[44px] font-bold leading-[1.02] tracking-[-0.03em] text-[#252323]">
+            Welcome back
+          </h2>
+          <p className="max-w-[330px] text-[18px] leading-[1.38] text-[#6d5d54]">
+            Please enter your details to access your curated events and vendor lists.
+          </p>
         </div>
 
-        {/* Password */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password" style={{ color: "#1A1A1A" }}>Password</Label>
-            <Link
-              href="/forgot-password"
-              className="text-xs font-medium hover:underline"
-              style={{ color: "#C1502E" }}
-            >
-              Forgot Password?
-            </Link>
-          </div>
-          <div className="relative">
-            <Lock
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-10"
-              style={{ color: "#8A8070" }}
-            />
-            <PasswordInput
-              id="password"
-              placeholder="••••••••"
-              className="pl-9"
-              {...register("password")}
-              style={{ backgroundColor: "white", borderColor: "#D5CCBC" }}
-            />
-          </div>
-          {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-[20px] space-y-[24px]">
+          <FormField id="email" label="Email address" error={errors.email?.message}>
+            <div className="relative">
+              <Mail className="absolute left-[13px] top-1/2 size-[20px] -translate-y-1/2 text-[#b7aaa0]" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Team2Off@SpaceTech.com"
+                autoComplete="email"
+                aria-invalid={!!errors.email}
+                className="h-[53px] rounded-[12px] border-0 bg-[#fffdfb] pl-[44px] text-[15px] shadow-none"
+                {...register("email")}
+              />
+            </div>
+          </FormField>
+
+          <FormField
+            id="password"
+            label="Password"
+            error={errors.password?.message}
+            action={
+              <Link
+                href="/forgot-password"
+                className="text-[12px] font-bold leading-none text-[#b23a19] hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            }
+          >
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-[13px] top-1/2 z-10 size-[20px] -translate-y-1/2 text-[#b7aaa0]" />
+                <PasswordInput
+                  id="password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  aria-invalid={!!errors.password}
+                  className="h-[53px] rounded-[12px] border-0 bg-[#fffdfb] pl-[44px] text-[15px] tracking-[0.18em] shadow-none"
+                  {...register("password")}
+                />
+              </div>
+            </div>
+          </FormField>
+
+          <Button
+            type="submit"
+            className="mt-[13px] h-[49px] w-full rounded-[7px] bg-[#af3718] text-[14px] font-medium text-white hover:bg-[#9f3216]"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Signing in
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-[34px]">
+          <SocialLogin />
         </div>
 
-        {/* Submit */}
-        <Button
-          type="submit"
-          className="w-full font-semibold h-12 text-base rounded-xl"
-          disabled={isLoading}
-          style={{ backgroundColor: "#C1502E", color: "white" }}
-        >
-          {isLoading ? (
-            <><Loader2 size={18} className="mr-2 animate-spin" /> Signing in...</>
-          ) : (
-            "Sign In"
-          )}
-        </Button>
-      </form>
+        <p className="mt-[22px] text-center text-[14px] text-[#6d5d54]">
+          Don&apos;t have an account?{" "}
+          <Link href="/register-option" className="font-medium text-[#b23a19] hover:underline">
+            Create account
+          </Link>
+        </p>
 
-      <SocialLogin />
-
-      <p className="text-center text-sm" style={{ color: "#6B6B68" }}>
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-semibold hover:underline" style={{ color: "#C1502E" }}>
-          Create an account
-        </Link>
-      </p>
-
-      {/* Footer */}
-      <div className="pt-4 border-t text-center" style={{ borderColor: "#E8E0D0" }}>
-        <p className="text-xs" style={{ color: "#A8A4A0" }}>
-          © 2026 EventHub Concierge ·{" "}
-          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-          {" · "}
-          <Link href="/terms" className="hover:underline">Terms of Service</Link>
+        <p className="absolute bottom-[22px] left-0 w-full text-center text-[11px] text-[#b2a79e] lg:bottom-[30px]">
+          © 2026 EventHub Concierge &nbsp;&nbsp; Privacy Policy &nbsp;&nbsp; Terms of Service
         </p>
       </div>
-    </div>
+    </AuthCard>
   );
 }

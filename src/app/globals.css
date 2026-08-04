@@ -170,3 +170,12 @@
     font-family: var(--font-sans);
   }
 }
+
+@keyframes eventhub-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

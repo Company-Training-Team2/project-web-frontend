@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import PasswordInput from "./PasswordInput";
-import { authService } from "@/services/auth.service";
+import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const schema = z
   .object({
@@ -46,8 +46,8 @@ export default function ResetPasswordForm() {
       await authService.resetPassword({ token, ...data });
       setDone(true);
       setTimeout(() => router.push("/login"), 2500);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Reset failed. Try again.");
+    } catch (error: unknown) {
+      toast.error(getAuthErrorMessage(error, "Reset failed. Try again."));
     } finally {
       setIsLoading(false);
     }

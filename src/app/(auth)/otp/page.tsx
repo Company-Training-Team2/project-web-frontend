@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import AuthLayout from "@/components/auth/AuthLayout";
-import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
+import OTPForm from "@/components/auth/OTPForm";
 import LoadingScreen from "@/components/shared/LoadingScreen";
 
-export default function ResetPasswordPage() {
+export default function OTPPage() {
   return (
-    <AuthLayout showBack backHref="/forgot-password">
+    <AuthLayout showBack backHref="/forgot-password" className="bg-[#fffdfb]">
       <Suspense fallback={<LoadingScreen fullScreen={false} />}>
-        <ResetPasswordForm />
+        <OTPForm />
       </Suspense>
     </AuthLayout>
   );

@@ -3,7 +3,7 @@ import RegisterForm from "@/components/auth/RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <AuthLayout showBack backHref="/login">
+    <AuthLayout showBack backHref="/register-option">
       <RegisterForm />
     </AuthLayout>
   );

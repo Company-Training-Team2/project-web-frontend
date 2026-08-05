@@ -1,3 +1,5 @@
+import apiClient from "@/lib/axios";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface LoginPayload {
@@ -5,12 +7,19 @@ export interface LoginPayload {
   password: string;
 }
 
+export type RegisterRole = "customer" | "vendor";
+
 export interface RegisterPayload {
   name: string;
   email: string;
   phone: string;
   password: string;
   confirmPassword: string;
+  role: RegisterRole;
+  /** Vendor-only — ignored by the backend for Customer registrations. */
+  businessName?: string;
+  /** Vendor-only — maps to RegisterRequest.cs's BioDescription field. */
+  bioDescription?: string;
 }
 
 export interface ForgotPasswordPayload {
@@ -18,7 +27,8 @@ export interface ForgotPasswordPayload {
 }
 
 export interface ResetPasswordPayload {
-  token: string;
+  email: string;
+  code: string;
   password: string;
   confirmPassword: string;
 }
@@ -39,18 +49,40 @@ export interface AuthUser {
 export interface AuthResponse {
   user: AuthUser;
   token: string;
+  refreshToken: string;
 }
 
-// ─── Mock helpers (remove when backend is ready) ──────────────────────────────
+// Shape returned by the backend's AuthResponse DTO (Id/Token/RefreshToken/Role/
+// Email/Name/Message/RequiresMfa). Role/Name/Id are absent on responses that
+// don't carry a session yet (e.g. Register, or a "requiresMfa" reply).
+interface BackendAuthResponse {
+  id?: number;
+  token?: string;
+  refreshToken?: string;
+  role?: "Customer" | "Vendor" | "Admin";
+  email?: string;
+  name?: string;
+  message?: string;
+  requiresMfa?: boolean;
+}
 
-const MOCK_USER: AuthUser = {
-  id: "1",
-  name: "Aysha Kassem",
-  email: "customer@eventhub.com",
-  role: "customer",
+const roleToBackend: Record<RegisterRole, "Customer" | "Vendor"> = {
+  customer: "Customer",
+  vendor: "Vendor",
 };
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+function toAuthResponse(data: BackendAuthResponse): AuthResponse {
+  return {
+    token: data.token ?? "",
+    refreshToken: data.refreshToken ?? "",
+    user: {
+      id: String(data.id ?? ""),
+      name: data.name ?? "",
+      email: data.email ?? "",
+      role: (data.role ?? "Customer").toLowerCase() as AuthUser["role"],
+    },
+  };
+}
 
 export function getAuthErrorMessage(error: unknown, fallback: string) {
   if (
@@ -74,57 +106,76 @@ export function getAuthErrorMessage(error: unknown, fallback: string) {
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const authService = {
-  // TODO: replace mock with → apiClient.post("/auth/login", payload)
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    await delay(800);
-    if (payload.password.length < 6) {
-      throw { response: { data: { message: "Invalid email or password" } } };
-    }
-    const token = "mock-jwt-token-" + Date.now();
-    return { user: MOCK_USER, token };
+    const { data } = await apiClient.post<BackendAuthResponse>("/auth/login", payload);
+    return toAuthResponse(data);
   },
 
-  // TODO: replace mock with → apiClient.post("/auth/register", payload)
-  async register(payload: RegisterPayload): Promise<AuthResponse> {
-    await delay(800);
-    const token = "mock-jwt-token-" + Date.now();
-    const user: AuthUser = {
-      id: "2",
-      name: payload.name,
+  // Registration never returns a session — the account can't sign in until the
+  // email is verified via the OTP screen, so there is nothing to save yet.
+  async register(payload: RegisterPayload): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>("/auth/register", {
       email: payload.email,
-      role: "customer",
-    };
-    return { user, token };
+      password: payload.password,
+      confirmPassword: payload.confirmPassword,
+      role: roleToBackend[payload.role],
+      fullName: payload.name,
+      phoneNumber: payload.phone,
+      businessName: payload.businessName,
+      bioDescription: payload.bioDescription,
+    });
+    return data;
   },
 
-  // TODO: replace mock with → apiClient.post("/auth/forgot-password", payload)
-  async forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
-    await delay(800);
-    void payload;
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>("/auth/forgot-password", payload);
+    return data;
   },
 
-  // TODO: replace mock with → apiClient.post("/auth/verify-otp", payload)
-  async verifyOtp(payload: VerifyOtpPayload): Promise<void> {
-    await delay(700);
-    if (payload.code.length !== 6) {
-      throw { response: { data: { message: "Enter the 6-digit verification code" } } };
+  async verifyOtp(payload: VerifyOtpPayload): Promise<{ message: string }> {
+    const endpoint = payload.purpose === "register" ? "/auth/verify-email" : "/auth/verify-reset-code";
+    const { data } = await apiClient.post<{ message: string }>(endpoint, {
+      email: payload.email,
+      code: payload.code,
+    });
+    return data;
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>("/auth/reset-password", {
+      email: payload.email,
+      code: payload.code,
+      newPassword: payload.password,
+      confirmPassword: payload.confirmPassword,
+    });
+    return data;
+  },
+
+  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+    const { data } = await apiClient.post<BackendAuthResponse>("/auth/refresh", { refreshToken });
+    return toAuthResponse(data);
+  },
+
+  async logout() {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch {
+      // Best-effort: even if the server call fails (expired token, offline,
+      // etc.) the local session must still be cleared below.
     }
-  },
-
-  // TODO: replace mock with → apiClient.post("/auth/reset-password", payload)
-  async resetPassword(payload: ResetPasswordPayload): Promise<void> {
-    await delay(800);
-    void payload;
-  },
-
-  logout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   },
 
   getToken(): string | null {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("token");
+  },
+
+  getRefreshToken(): string | null {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("refreshToken");
   },
 
   getUser(): AuthUser | null {
@@ -135,6 +186,7 @@ export const authService = {
 
   saveSession(data: AuthResponse) {
     localStorage.setItem("token", data.token);
+    localStorage.setItem("refreshToken", data.refreshToken);
     localStorage.setItem("user", JSON.stringify(data.user));
   },
 };

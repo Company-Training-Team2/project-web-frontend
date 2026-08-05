@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +25,12 @@ const schema = z
       .string()
       .min(7, "Enter a valid phone number")
       .regex(/^[+\d\s\-()]+$/, "Invalid phone number"),
-    password: z.string().min(8, "Min. 8 characters"),
+    password: z
+      .string()
+      .min(8, "Min. 8 characters")
+      .regex(/[A-Z]/, "Must include an uppercase letter")
+      .regex(/[a-z]/, "Must include a lowercase letter")
+      .regex(/[0-9]/, "Must include a number"),
     terms: z.literal(true, "You must agree to the terms"),
   });
 
@@ -33,6 +38,8 @@ type FormData = z.infer<typeof schema>;
 
 export default function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") === "vendor" ? "vendor" : "customer";
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -50,6 +57,7 @@ export default function RegisterForm() {
         phone: data.phone,
         password: data.password,
         confirmPassword: data.password,
+        role,
       });
       toast.success("Account details saved. Verify your email next.");
       router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);

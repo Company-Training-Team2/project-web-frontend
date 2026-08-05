@@ -16,7 +16,12 @@ import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const schema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must include an uppercase letter")
+      .regex(/[a-z]/, "Must include a lowercase letter")
+      .regex(/[0-9]/, "Must include a number"),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -29,7 +34,8 @@ type FormData = z.infer<typeof schema>;
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const email = searchParams.get("email") || "";
+  const code = searchParams.get("code") || "";
 
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -43,7 +49,7 @@ export default function ResetPasswordForm() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      await authService.resetPassword({ token, ...data });
+      await authService.resetPassword({ email, code, ...data });
       setDone(true);
       setTimeout(() => router.push("/login"), 2500);
     } catch (error: unknown) {

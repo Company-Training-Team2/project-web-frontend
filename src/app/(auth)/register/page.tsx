@@ -1,10 +1,14 @@
+import { Suspense } from "react";
 import AuthLayout from "@/components/auth/AuthLayout";
-import RegisterForm from "@/components/auth/RegisterForm";
+import RegisterRouter from "@/components/auth/RegisterRouter";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 
 export default function RegisterPage() {
   return (
     <AuthLayout showBack backHref="/register-option">
-      <RegisterForm />
+      <Suspense fallback={<LoadingScreen fullScreen={false} />}>
+        <RegisterRouter />
+      </Suspense>
     </AuthLayout>
   );
 }

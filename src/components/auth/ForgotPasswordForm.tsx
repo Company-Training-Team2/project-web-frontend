@@ -1,47 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 import AuthCard from "./AuthCard";
 import FormField from "./FormField";
+import { useForgotPasswordForm } from "./useForgotPassword";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
-const schema = z.object({
-  email: z.string().email("Enter a valid email address"),
-});
-
-type FormData = z.infer<typeof schema>;
-
+// Mobile/tablet layout only — the Desktop breakpoint for this screen is a
+// bespoke full-bleed design (see ForgotPasswordDesktop.tsx) rendered as a
+// sibling tree by the page itself, not by this component.
 export default function ForgotPasswordForm() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
   const {
     register,
-    handleSubmit,
+    onSubmit,
+    isLoading,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
-
-  const onSubmit = async (data: FormData) => {
-    setIsLoading(true);
-    try {
-      await authService.forgotPassword(data);
-      toast.success("Verification code sent.");
-      router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=reset-password`);
-    } catch (error: unknown) {
-      toast.error(getAuthErrorMessage(error, "Something went wrong."));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } = useForgotPasswordForm();
 
   return (
     <AuthCard>
@@ -66,7 +42,7 @@ export default function ForgotPasswordForm() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-[40px] space-y-[45px]">
+        <form onSubmit={onSubmit} className="mt-[40px] space-y-[45px]">
           <FormField id="email" label="EMAIL ADDRESS" uppercase error={errors.email?.message}>
             <Input
               id="email"

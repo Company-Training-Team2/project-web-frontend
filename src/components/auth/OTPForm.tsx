@@ -67,7 +67,15 @@ export default function OTPForm() {
     try {
       await authService.verifyOtp({ email, code: data.code, purpose });
       toast.success("Verification complete.");
-      router.push(purpose === "register" ? "/login" : "/login?reset=verified");
+      if (purpose === "register") {
+        router.push("/login");
+      } else {
+        // Carry the verified email + code forward so Reset Password can
+        // submit the new password without asking the user to re-enter it.
+        router.push(
+          `/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(data.code)}`
+        );
+      }
     } catch (error: unknown) {
       toast.error(getAuthErrorMessage(error, "Invalid code. Please try again."));
     } finally {

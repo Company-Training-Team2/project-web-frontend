@@ -9,13 +9,13 @@ const options = [
     title: "Customer",
     description: "Plan events, save vendors, and manage bookings.",
     icon: UserRound,
-    href: "/register",
+    href: "/register?role=customer",
   },
   {
     title: "Vendor",
     description: "Create a business profile and receive event leads.",
     icon: Building2,
-    href: "/register",
+    href: "/register?role=vendor",
   },
 ];
 

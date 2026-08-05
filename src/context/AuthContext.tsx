@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,14 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (payload: RegisterPayload) => {
-    const data = await authService.register(payload);
-    authService.saveSession(data);
-    setUser(data.user);
-    router.push("/");
+    // Registering never returns a session — the account must verify its email
+    // (OTP screen) before it can sign in, so there's nothing to save here.
+    await authService.register(payload);
   };
 
-  const logout = () => {
-    authService.logout();
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
     router.push("/login");
   };

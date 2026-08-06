@@ -149,28 +149,28 @@ export default function SettingsPage() {
                 <p className="mb-3 text-xs font-bold uppercase tracking-[0.08em] text-[#A3391C]">
                   Preferences
                 </p>
-                <div className="divide-y divide-[#DCCFC0] rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0]">
-                  <div className="flex items-center gap-3 px-5 py-4">
-                    <Globe className="h-[18px] w-[18px] text-[#8B716A]" />
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4">
+                    <Globe className="h-[18px] w-[18px] text-[#8B7E72]" />
                     <span className="flex-1 text-sm text-[#2B2622]">
                       Language
                     </span>
-                    <span className="text-sm text-[#8B716A]">{language}</span>
-                    <ChevronRight className="h-4 w-4 text-[#8B716A]" />
+                    <span className="text-sm text-[#8B7E72]">{language}</span>
+                    <ChevronRight className="h-4 w-4 text-[#8B7E72]" />
                   </div>
-                  <div className="flex items-center gap-3 px-5 py-4">
-                    <Moon className="h-[18px] w-[18px] text-[#8B716A]" />
+                  <div className="flex items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4">
+                    <Moon className="h-[18px] w-[18px] text-[#8B7E72]" />
                     <span className="flex-1 text-sm text-[#2B2622]">
                       Dark Mode
                     </span>
                     <Toggle checked={darkMode} onChange={() => setDarkMode((v) => !v)} />
                   </div>
-                  <button className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-[#EDE0D2]">
-                    <Bell className="h-[18px] w-[18px] text-[#8B716A]" />
+                  <button className="flex w-full items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4 text-left transition-colors hover:bg-[#EDE0D2]">
+                    <Bell className="h-[18px] w-[18px] text-[#8B7E72]" />
                     <span className="flex-1 text-sm text-[#2B2622]">
                       Notifications
                     </span>
-                    <ChevronRight className="h-4 w-4 text-[#8B716A]" />
+                    <ChevronRight className="h-4 w-4 text-[#8B7E72]" />
                   </button>
                 </div>
               </div>
@@ -180,30 +180,30 @@ export default function SettingsPage() {
                   <p className="mb-3 text-xs font-bold uppercase tracking-[0.08em] text-[#A3391C]">
                     {label}
                   </p>
-                  <div className="divide-y divide-[#DCCFC0] rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0]">
+                  <div className="flex flex-col gap-3">
                     {items.map(({ icon: Icon, title, href, trailing }) =>
                       href ? (
                         <Link
                           key={title}
                           href={href}
-                          className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-[#EDE0D2]"
+                          className="flex items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4 transition-colors hover:bg-[#EDE0D2]"
                         >
-                          <Icon className="h-[18px] w-[18px] text-[#8B716A]" />
+                          <Icon className="h-[18px] w-[18px] text-[#8B7E72]" />
                           <span className="flex-1 text-sm text-[#2B2622]">
                             {title}
                           </span>
-                          <ChevronRight className="h-4 w-4 text-[#8B716A]" />
+                          <ChevronRight className="h-4 w-4 text-[#8B7E72]" />
                         </Link>
                       ) : (
                         <div
                           key={title}
-                          className="flex items-center gap-3 px-5 py-4"
+                          className="flex items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4"
                         >
-                          <Icon className="h-[18px] w-[18px] text-[#8B716A]" />
+                          <Icon className="h-[18px] w-[18px] text-[#8B7E72]" />
                           <span className="flex-1 text-sm text-[#2B2622]">
                             {title}
                           </span>
-                          <span className="text-sm text-[#8B716A]">
+                          <span className="text-sm text-[#8B7E72]">
                             {trailing}
                           </span>
                         </div>

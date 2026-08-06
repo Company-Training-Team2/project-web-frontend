@@ -450,7 +450,7 @@ export default function VendorRegisterWizard() {
                 <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#b23a19]">
                   3. Subscription Plan
                 </p>
-                <div className="grid gap-[14px] sm:grid-cols-3">
+                <div className="grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3">
                   {VENDOR_PLAN_TIERS.map((tier) => (
                     <PlanTierCard
                       key={tier.id}

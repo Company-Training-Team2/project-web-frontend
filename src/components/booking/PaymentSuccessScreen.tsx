@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import SuccessIcon from "./SuccessIcon";
 import ConfirmationCard from "./ConfirmationCard";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
-import LoadingScreen from "@/components/shared/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { getPackageById, getVendorById } from "@/lib/mock/vendors";
-import { BookingDraft, clearBookingDraft, generateConfirmationCode, getBookingDraft } from "@/lib/mock/bookingDraft";
+import { clearBookingDraft, generateConfirmationCode, useBookingDraft } from "@/lib/mock/bookingDraft";
 
 export default function PaymentSuccessScreen() {
   useRequireAuth();
@@ -19,28 +18,22 @@ export default function PaymentSuccessScreen() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "there";
 
-  // Same reasoning as CheckoutScreen: read sessionStorage after mount, not
-  // inside useState(), to avoid a server/client hydration mismatch.
-  const [draft, setDraft] = useState<BookingDraft | null | undefined>(undefined);
+  // Same reasoning as CheckoutScreen: useSyncExternalStore avoids the
+  // server/client hydration mismatch a plain useState(getBookingDraft())
+  // read would cause.
+  const draft = useBookingDraft();
   const confirmationCode = useMemo(() => generateConfirmationCode(), []);
 
   useEffect(() => {
-    setDraft(getBookingDraft());
-  }, []);
-
-  useEffect(() => {
-    if (draft === null) {
+    if (!draft) {
       router.replace("/vendors");
       return;
     }
-    if (draft) {
-      // Clear only after the confirmation has painted, so a refresh mid-render
-      // doesn't wipe the data before the user sees it.
-      clearBookingDraft();
-    }
+    // Clear only after the confirmation has painted, so a refresh mid-render
+    // doesn't wipe the data before the user sees it.
+    clearBookingDraft();
   }, [draft, router]);
 
-  if (draft === undefined) return <LoadingScreen fullScreen={false} />;
   if (!draft) return null;
 
   const vendor = getVendorById(draft.vendorId);

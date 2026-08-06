@@ -52,6 +52,27 @@ export function clearBookingDraft() {
   window.sessionStorage.removeItem(STORAGE_KEY);
 }
 
+function subscribe(callback: () => void) {
+  // sessionStorage writes from *this* tab (saveBookingDraft/clearBookingDraft)
+  // don't fire the "storage" event — only other tabs would. That's fine here:
+  // this flow is single-tab by design, and callers re-read the draft
+  // explicitly right after every save via the returned value.
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getServerSnapshot(): BookingDraft | null {
+  return null;
+}
+
+/** Hydration-safe read of the in-progress booking draft. Returns null on the
+ * server and on the client's first paint, then the real sessionStorage value
+ * once React reconciles — see the file header comment for why this can't
+ * just be `useState(getBookingDraft())`. */
+export function useBookingDraft(): BookingDraft | null {
+  return useSyncExternalStore(subscribe, getBookingDraft, getServerSnapshot);
+}
+
 /** Mock confirmation code generator for Payment Success — not a real booking
  * id since no booking is actually persisted server-side in this pass. */
 export function generateConfirmationCode(): string {

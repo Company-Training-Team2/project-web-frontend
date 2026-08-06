@@ -107,8 +107,8 @@ export function Calendar({
                 disabled={disabled || !inMonth}
                 onClick={() => onSelect?.(date)}
                 className={cn(
-                  "grid place-items-center rounded-full transition",
-                  compact ? "size-6" : "size-9",
+                  "grid aspect-square w-full max-w-9 place-items-center rounded-full text-[13px] transition",
+                  compact && "max-w-6 text-[11px]",
                   !inMonth && "text-transparent",
                   inMonth && !selected && !disabled && "text-[#252323] hover:bg-[#f3ede3]",
                   disabled && inMonth && "text-[#d8cbbc]",

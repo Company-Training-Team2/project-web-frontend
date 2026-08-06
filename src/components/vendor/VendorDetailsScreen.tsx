@@ -26,7 +26,7 @@ export default function VendorDetailsScreen({ vendorId }: { vendorId: string }) 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId) ?? packages[0];
 
   return (
-    <div className="min-h-screen bg-[#faf6f0] pb-4 lg:mx-auto lg:max-w-4xl">
+    <div className="mx-auto min-h-screen w-full max-w-2xl bg-[#faf6f0] pb-4 lg:max-w-4xl">
       <VendorHeroCarousel vendor={vendor} />
       <VendorHeaderInfo vendor={vendor} />
       <VendorDescription description={vendor.description} />

@@ -52,31 +52,33 @@ function ReserveScreenInner() {
 
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-10">
-      <ReserveHeader vendorName={vendor.businessName.toUpperCase()} month={month} onMonthChange={setMonth} />
+      <div className="mx-auto w-full max-w-2xl">
+        <ReserveHeader vendorName={vendor.businessName.toUpperCase()} month={month} onMonthChange={setMonth} />
 
-      <div className="px-5 lg:px-10">
-        <div className="rounded-[16px] border border-[#e5ded2] bg-white p-4">
-          <Calendar month={month} onMonthChange={setMonth} selectedDate={selectedDate} onSelect={setSelectedDate} />
+        <div className="px-4 sm:px-5 lg:px-10">
+          <div className="rounded-[16px] border border-[#e5ded2] bg-white p-3 sm:p-4">
+            <Calendar month={month} onMonthChange={setMonth} selectedDate={selectedDate} onSelect={setSelectedDate} />
+          </div>
         </div>
-      </div>
 
-      <GuestCountCard guestCount={guestCount} onChange={setGuestCount} />
-      {packages.length > 0 ? (
-        <PackageSelectionList packages={packages} selectedId={packageId} onSelect={setPackageId} />
-      ) : null}
+        <GuestCountCard guestCount={guestCount} onChange={setGuestCount} />
+        {packages.length > 0 ? (
+          <PackageSelectionList packages={packages} selectedId={packageId} onSelect={setPackageId} />
+        ) : null}
 
-      {selectedPackage ? (
-        <BudgetSummaryCard
-          packageName={selectedPackage.name}
-          guestCount={guestCount}
-          pricePerGuest={selectedPackage.pricePerGuest}
-        />
-      ) : null}
+        {selectedPackage ? (
+          <BudgetSummaryCard
+            packageName={selectedPackage.name}
+            guestCount={guestCount}
+            pricePerGuest={selectedPackage.pricePerGuest}
+          />
+        ) : null}
 
-      <div className="px-5 pt-6 lg:px-10">
-        <Button onClick={handleContinue} className="h-[52px] w-full rounded-[10px] bg-[#af3718] text-[15px] font-bold hover:bg-[#9f3216]">
-          Continue to Checkout →
-        </Button>
+        <div className="px-4 pt-6 sm:px-5 lg:px-10">
+          <Button onClick={handleContinue} className="h-[52px] w-full rounded-[10px] bg-[#af3718] text-[15px] font-bold hover:bg-[#9f3216]">
+            Continue to Checkout →
+          </Button>
+        </div>
       </div>
 
       <SparkleFab />

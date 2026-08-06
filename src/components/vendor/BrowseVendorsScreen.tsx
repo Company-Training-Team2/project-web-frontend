@@ -27,14 +27,19 @@ export default function BrowseVendorsScreen() {
   }, [search, category]);
 
   return (
-    <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-0">
-      <BrowseVendorsHeader />
+    <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">
+      {/* No separate Desktop Figma exists for this screen — centering it in
+       * a content-width column (rather than letting cards stretch edge to
+       * edge) is the responsive treatment for tablet/desktop widths. */}
+      <div className="mx-auto w-full max-w-2xl">
+        <BrowseVendorsHeader />
 
-      <div className="mt-5 space-y-4">
-        <VendorSearchBar value={search} onChange={setSearch} />
-        <CategoryPillFilter active={category} onChange={setCategory} />
-        <VendorResultsRow count={filtered.length} city="Alexandria" />
-        <VendorList vendors={filtered} />
+        <div className="mt-5 space-y-4">
+          <VendorSearchBar value={search} onChange={setSearch} />
+          <CategoryPillFilter active={category} onChange={setCategory} />
+          <VendorResultsRow count={filtered.length} city="Alexandria" />
+          <VendorList vendors={filtered} />
+        </div>
       </div>
 
       <SparkleFab />

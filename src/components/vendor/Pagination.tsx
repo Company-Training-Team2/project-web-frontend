@@ -15,7 +15,7 @@ export default function Pagination({
   const pages = Array.from({ length: Math.min(totalPages, 3) }, (_, i) => i + 1);
 
   return (
-    <div className="flex items-center justify-center gap-2 px-8 pb-10">
+    <div className="flex items-center justify-center gap-2 px-4 pb-10 sm:px-8">
       <button
         onClick={() => onChange(Math.max(1, page - 1))}
         aria-label="Previous page"

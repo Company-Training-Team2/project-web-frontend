@@ -19,24 +19,26 @@ export default function PaymentMethodsScreen() {
 
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">
-      <PaymentMethodsHeader />
-      <SecureTransactionsBanner />
+      <div className="mx-auto w-full max-w-xl">
+        <PaymentMethodsHeader />
+        <SecureTransactionsBanner />
 
-      <div className="px-5 pt-6 lg:px-10">
-        <SectionEyebrow tone="muted">Saved Cards</SectionEyebrow>
-        <div className="mt-3 space-y-3">
-          {methods.map((method) => (
-            <SavedCardRow
-              key={method.id}
-              method={method}
-              onRemove={() => setMethods((prev) => prev.filter((m) => m.id !== method.id))}
-            />
-          ))}
-          <AddNewCardButton onAdd={(card) => setMethods((prev) => [...prev, card])} />
+        <div className="px-4 pt-6 sm:px-5 lg:px-10">
+          <SectionEyebrow tone="muted">Saved Cards</SectionEyebrow>
+          <div className="mt-3 space-y-3">
+            {methods.map((method) => (
+              <SavedCardRow
+                key={method.id}
+                method={method}
+                onRemove={() => setMethods((prev) => prev.filter((m) => m.id !== method.id))}
+              />
+            ))}
+            <AddNewCardButton onAdd={(card) => setMethods((prev) => [...prev, card])} />
+          </div>
         </div>
-      </div>
 
-      <SecurityDisclaimerCard />
+        <SecurityDisclaimerCard />
+      </div>
       <BottomNav active="profile" />
     </div>
   );

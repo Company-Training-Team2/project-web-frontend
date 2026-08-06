@@ -29,19 +29,21 @@ export default function MyBookingsScreen() {
 
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">
-      <MyBookingsHeader />
+      <div className="mx-auto w-full max-w-6xl">
+        <MyBookingsHeader />
 
-      <div className="mt-4 space-y-4">
-        <BookingFilterTabs active={tab} onChange={setTab} />
+        <div className="mt-4 space-y-4">
+          <BookingFilterTabs active={tab} onChange={setTab} />
 
-        <div className="grid grid-cols-1 gap-4 px-5 pb-6 sm:grid-cols-2 lg:grid-cols-3 lg:px-10">
-          {bookings.length === 0 ? (
-            <p className="col-span-full py-10 text-center text-[14px] text-[#a79a90]">
-              No {tab.toLowerCase()} bookings yet.
-            </p>
-          ) : (
-            bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)
-          )}
+          <div className="grid grid-cols-1 gap-4 px-4 pb-6 sm:grid-cols-2 sm:px-5 lg:grid-cols-3 lg:px-10 xl:grid-cols-4">
+            {bookings.length === 0 ? (
+              <p className="col-span-full py-10 text-center text-[14px] text-[#a79a90]">
+                No {tab.toLowerCase()} bookings yet.
+              </p>
+            ) : (
+              bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)
+            )}
+          </div>
         </div>
       </div>
 

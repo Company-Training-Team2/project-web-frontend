@@ -33,11 +33,11 @@ export default function NoResultsFound() {
           discovery away. Allow us to guide you toward other curated experiences.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <Button asChild className="h-11 rounded-[8px] bg-[#af3718] px-6 hover:bg-[#9f3216]">
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button asChild className="h-11 w-full rounded-[8px] bg-[#af3718] px-6 hover:bg-[#9f3216] sm:w-auto">
             <Link href="/vendors/search">Explore Vendors →</Link>
           </Button>
-          <Button asChild variant="outline" className="h-11 rounded-[8px] border-[#252323] px-6">
+          <Button asChild variant="outline" className="h-11 w-full rounded-[8px] border-[#252323] px-6 sm:w-auto">
             <Link href="/vendors">Back Home</Link>
           </Button>
         </div>

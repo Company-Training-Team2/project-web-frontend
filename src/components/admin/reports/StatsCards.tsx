@@ -29,24 +29,24 @@ const cards = [
 
 export default function StatsCards() {
   return (
-    <div className="grid grid-cols-4 gap-5 mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
       {cards.map((card) => (
         <div
           key={card.title}
-          className="bg-white rounded-2xl p-5 shadow-sm"
+          className="bg-[#F6ECE0] border border-[#DCCFC0] rounded-[16px] p-5 min-w-0"
         >
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-[#8B716A]">
               {card.title}
             </span>
 
             <TrendingUp
               size={16}
-              className="text-orange-500"
+              className="text-[#A3391C]"
             />
           </div>
 
-          <h2 className="text-3xl font-bold mt-3">
+          <h2 className="text-3xl font-bold mt-3 text-[#2B2622]">
             {card.value}
           </h2>
 
@@ -59,7 +59,7 @@ export default function StatsCards() {
               {card.bars.map((height) => (
                 <div
                   key={height}
-                  className="flex-1 rounded bg-orange-500"
+                  className="flex-1 rounded bg-[#A3391C]"
                   style={{ height }}
                 />
               ))}

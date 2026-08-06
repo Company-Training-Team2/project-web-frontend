@@ -59,9 +59,9 @@ const statusStyles: Record<Member["status"], string> = {
 };
 
 const membershipStyles: Record<Member["membership"], string> = {
-  Executive: "text-gray-700",
-  Standard: "text-gray-700",
-  Premium: "text-[#C95B2B] font-semibold",
+  Executive: "text-[#2B2622]",
+  Standard: "text-[#2B2622]",
+  Premium: "text-[#A3391C] font-semibold",
 };
 
 export default function UsersTable({
@@ -70,29 +70,29 @@ export default function UsersTable({
   onSelect: (member: Member) => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm mt-6 p-4 md:p-6">
+    <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] mt-6 p-4 md:p-6">
       {/* ===== Mobile: Cards ===== */}
       <div className="md:hidden space-y-3">
         {members.map((member) => (
           <div
             key={member.id}
             onClick={() => onSelect(member)}
-            className="border rounded-xl p-4 flex flex-col gap-3 active:bg-gray-50"
+            className="border border-[#DCCFC0] rounded-xl p-4 flex flex-col gap-3 active:bg-[#EDE0D2]"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-300 shrink-0" />
+                <div className="w-10 h-10 rounded-full bg-[#DCCFC0] shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-800 text-sm">
+                  <p className="font-medium text-[#2B2622] text-sm">
                     {member.name}
                   </p>
-                  <p className="text-xs text-gray-500">{member.email}</p>
+                  <p className="text-xs text-[#8B716A]">{member.email}</p>
                 </div>
               </div>
 
               <button
                 onClick={(e) => e.stopPropagation()}
-                className="text-gray-400 hover:text-gray-600 shrink-0"
+                className="text-[#8B716A] hover:text-[#2B2622] shrink-0"
               >
                 <MoreVertical size={18} />
               </button>
@@ -109,7 +109,7 @@ export default function UsersTable({
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-3">
+            <div className="flex items-center justify-between text-xs text-[#8B716A] border-t border-[#DCCFC0] pt-3">
               <span>{member.bookings} bookings</span>
               <span>Joined {member.joinDate}</span>
             </div>
@@ -120,7 +120,7 @@ export default function UsersTable({
       {/* ===== Desktop: Table ===== */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full min-w-[640px]">
-          <thead className="text-left text-gray-400 text-xs uppercase tracking-wide">
+          <thead className="text-left text-[#8B7E72] text-xs uppercase tracking-wide">
             <tr>
               <th className="pb-4">User Identity</th>
               <th className="pb-4">Status</th>
@@ -136,13 +136,13 @@ export default function UsersTable({
               <tr
                 key={member.id}
                 onClick={() => onSelect(member)}
-                className="border-t cursor-pointer hover:bg-gray-50"
+                className="border-t border-[#DCCFC0] cursor-pointer hover:bg-[#EDE0D2]"
               >
                 <td className="py-4 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gray-300" />
+                  <div className="w-9 h-9 rounded-full bg-[#DCCFC0]" />
                   <div>
-                    <p className="font-medium text-gray-800">{member.name}</p>
-                    <p className="text-sm text-gray-500">{member.email}</p>
+                    <p className="font-medium text-[#2B2622]">{member.name}</p>
+                    <p className="text-sm text-[#8B716A]">{member.email}</p>
                   </div>
                 </td>
 
@@ -158,14 +158,14 @@ export default function UsersTable({
                   {member.membership}
                 </td>
 
-                <td>{member.bookings}</td>
+                <td className="text-[#2B2622]">{member.bookings}</td>
 
-                <td>{member.joinDate}</td>
+                <td className="text-[#8B716A]">{member.joinDate}</td>
 
                 <td>
                   <button
                     onClick={(e) => e.stopPropagation()}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-[#8B716A] hover:text-[#2B2622]"
                   >
                     <MoreVertical size={18} />
                   </button>
@@ -176,24 +176,24 @@ export default function UsersTable({
         </table>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 text-sm text-gray-500">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 text-sm text-[#8B716A]">
         <span>Showing 1 to 4 of 1,240 members</span>
 
         <div className="flex items-center gap-2">
-          <button className="px-2 py-1 rounded hover:bg-gray-100">‹</button>
+          <button className="px-2 py-1 rounded hover:bg-[#EDE0D2]">‹</button>
           {[1, 2, 3].map((n) => (
             <button
               key={n}
               className={`w-8 h-8 rounded-lg ${
                 n === 1
-                  ? "bg-[#1B2421] text-white"
-                  : "hover:bg-gray-100 text-gray-600"
+                  ? "bg-[#A3391C] text-white"
+                  : "hover:bg-[#EDE0D2] text-[#8B716A]"
               }`}
             >
               {n}
             </button>
           ))}
-          <button className="px-2 py-1 rounded hover:bg-gray-100">›</button>
+          <button className="px-2 py-1 rounded hover:bg-[#EDE0D2]">›</button>
         </div>
       </div>
     </div>

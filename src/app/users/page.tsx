@@ -11,7 +11,7 @@ export default function UsersPage() {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#F6F1EB] flex overflow-x-hidden">
+    <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">

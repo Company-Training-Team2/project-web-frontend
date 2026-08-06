@@ -29,25 +29,25 @@ const stats = [
 
 export default function StatsCards() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mt-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mt-6">
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="bg-white rounded-2xl p-4 md:p-6 shadow-sm"
+          className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-6"
         >
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-[#F6F1EB] flex items-center justify-center text-[#C95B2B]">
+            <div className="w-9 h-9 rounded-xl bg-[#EDE0D2] flex items-center justify-center text-[#A3391C]">
               <stat.icon size={18} />
             </div>
-            <span className="text-green-600 text-xs font-medium">
+            <span className="text-green-700 text-xs font-medium">
               {stat.growth}
             </span>
           </div>
 
-          <p className="text-xs md:text-sm text-gray-500 mt-3">
+          <p className="text-xs md:text-sm text-[#8B716A] mt-3">
             {stat.label}
           </p>
-          <h2 className="text-lg md:text-2xl font-bold mt-1 truncate">
+          <h2 className="text-lg md:text-2xl font-bold mt-1 truncate text-[#2B2622]">
             {stat.value}
           </h2>
         </div>

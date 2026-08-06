@@ -7,6 +7,7 @@ import {
   Users,
   Store,
   BarChart3,
+  FileText,
   Settings,
   LifeBuoy,
 } from "lucide-react";
@@ -16,7 +17,7 @@ const menu = [
   { icon: Users, title: "User Management", href: "/users" },
   { icon: Store, title: "Vendor Directory", href: "/vendors" },
   { icon: BarChart3, title: "Analytics", href: "/analytics" },
-  { icon: Settings, title: "Settings", href: "/settings" },
+{ icon: FileText, title: "Reports", href: "/admin/reports" },  { icon: Settings, title: "Settings", href: "/settings" },
 ];
 
 export default function Sidebar() {

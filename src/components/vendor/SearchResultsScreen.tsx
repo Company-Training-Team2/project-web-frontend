@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 
 import MarketplaceHeader from "@/components/shared/MarketplaceHeader";
 import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
+import BottomNav from "@/components/shared/BottomNav";
 import FiltersSidebar, { SearchFilters } from "./FiltersSidebar";
 import SearchResultsHeader from "./SearchResultsHeader";
+import CategoryPillFilter from "./CategoryPillFilter";
 import VendorGrid from "./VendorGrid";
 import Pagination from "./Pagination";
 import NoResultsFound from "./NoResultsFound";
@@ -29,8 +31,15 @@ export default function SearchResultsScreen() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-[#faf6f0]">
+    <div className="min-h-screen bg-[#faf6f0] pb-20 lg:pb-0">
       <MarketplaceHeader />
+
+      {/* FiltersSidebar is desktop-only (lg:block); phones/tablets get an
+       * inline category-pill row instead of the full sidebar so filtering
+       * still works below lg. */}
+      <div className="border-b border-[#e5ded2] py-3 lg:hidden">
+        <CategoryPillFilter active={filters.category} onChange={(category) => setFilters((f) => ({ ...f, category }))} />
+      </div>
 
       <div className="flex">
         <FiltersSidebar filters={filters} onChange={setFilters} />
@@ -49,6 +58,7 @@ export default function SearchResultsScreen() {
       </div>
 
       <MarketplaceFooter />
+      <BottomNav active="browse" />
     </div>
   );
 }

@@ -20,7 +20,7 @@ export default function PackageServicesCard({ booking, pkg }: { booking: MockBoo
           "A comprehensive luxury dining experience including a four-course seasonal menu, premium wine pairings, and bespoke table styling."}
       </p>
 
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
         {INCLUSIONS.map((item) => (
           <p key={item} className="flex items-center gap-1.5 text-[13px] text-[#252323]">
             <Check className="size-3.5 shrink-0 text-[#af3718]" />

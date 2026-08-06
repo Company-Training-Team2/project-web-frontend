@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
+import BottomNav from "@/components/shared/BottomNav";
 import BookingDetailsTopBar from "./BookingDetailsTopBar";
 import BookingJourneyStepper from "./BookingJourneyStepper";
 import PackageServicesCard from "./PackageServicesCard";
@@ -22,10 +23,10 @@ export default function BookingDetailsScreen({ bookingId }: { bookingId: string 
   if (!vendor) notFound();
 
   return (
-    <div className="min-h-screen bg-[#f6f1ea]">
+    <div className="min-h-screen bg-[#f6f1ea] pb-20 lg:pb-0">
       <BookingDetailsTopBar booking={booking} />
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1fr_320px] lg:px-10">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[1fr_320px] lg:px-10">
         <div className="space-y-6">
           <BookingJourneyStepper />
           <PackageServicesCard booking={booking} pkg={pkg} />
@@ -42,6 +43,7 @@ export default function BookingDetailsScreen({ bookingId }: { bookingId: string 
       </div>
 
       <MarketplaceFooter />
+      <BottomNav active="bookings" />
     </div>
   );
 }

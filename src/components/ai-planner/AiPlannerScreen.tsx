@@ -38,7 +38,7 @@ export default function AiPlannerScreen() {
     <div className="flex min-h-screen flex-col bg-[#f6f1ea]">
       <AiPlannerHeader />
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4 lg:px-10">
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 lg:px-10">
         <LiveDossierHeading eventName="The Tuscan Dream" />
 
         {messages.map((message) => (
@@ -62,8 +62,10 @@ export default function AiPlannerScreen() {
         </div>
       </div>
 
-      <QuickActionPills onSelect={handleQuickAction} />
-      <ChatComposer onSend={handleSend} />
+      <div className="mx-auto w-full max-w-2xl">
+        <QuickActionPills onSelect={handleQuickAction} />
+        <ChatComposer onSend={handleSend} />
+      </div>
     </div>
   );
 }

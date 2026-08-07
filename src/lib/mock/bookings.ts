@@ -59,9 +59,11 @@ export const MOCK_BOOKINGS: MockBooking[] = [
   },
 ];
 
+// No real payment gateway is integrated anywhere — InstaPay is mocked as a
+// single connected account (matches the real PaymentMethod.InstaPay enum
+// value). Checkout/Payment Methods just display this connection status.
 export const MOCK_PAYMENTS: MockPayment[] = [
-  { id: "pm1", paymentMethod: "Visa", cardBrand: "Visa", last4: "4291", expiry: "09/32", isDefault: true },
-  { id: "pm2", paymentMethod: "MasterCard", cardBrand: "Mastercard", last4: "8802", expiry: "12/25", isDefault: false },
+  { id: "pm1", paymentMethod: "InstaPay", accountLabel: "01xx xxx 214", isConnected: true, isDefault: true },
 ];
 
 export function getBookingById(id: string): MockBooking | undefined {

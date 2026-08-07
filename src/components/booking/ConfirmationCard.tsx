@@ -29,7 +29,7 @@ export default function ConfirmationCard({
 
       <div className="mt-3 flex items-center justify-between">
         <p className="font-serif text-[18px] font-bold text-[#252323]">{pkg?.name ?? "Package"}</p>
-        <p className="text-[17px] font-bold text-[#252323]">${total.toLocaleString()}</p>
+        <p className="text-[17px] font-bold text-[#252323]">EGP {total.toLocaleString()}</p>
       </div>
 
       <div className="mt-3 space-y-1.5 text-[13px] text-[#6d5d54]">

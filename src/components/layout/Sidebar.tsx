@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -10,18 +10,28 @@ import {
   FileText,
   Settings,
   LifeBuoy,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const menu = [
-  { icon: LayoutDashboard, title: "Dashboard", href: "/dashboard" },
-  { icon: Users, title: "User Management", href: "/users" },
-  { icon: Store, title: "Vendor Directory", href: "/vendors" },
-  { icon: BarChart3, title: "Analytics", href: "/analytics" },
-{ icon: FileText, title: "Reports", href: "/admin/reports" },  { icon: Settings, title: "Settings", href: "/settings" },
+  { icon: LayoutDashboard, title: "Dashboard", href: "/admin/dashboard" },
+  { icon: Users, title: "User Management", href: "/admin/users" },
+  { icon: Store, title: "Vendor Directory", href: "/admin/vendors" },
+  { icon: BarChart3, title: "Analytics", href: "/admin/analytics" },
+  { icon: FileText, title: "Reports", href: "/admin/reports" },
+  { icon: Settings, title: "Settings", href: "/admin/settings" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/admin/login");
+  };
 
   return (
     <aside className="w-16 md:w-64 bg-[#1B2421] text-white flex flex-col justify-between min-h-screen shrink-0 transition-all">
@@ -62,7 +72,15 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-2 md:p-4">
+      <div className="space-y-2 p-2 md:p-4">
+        <button
+          onClick={handleLogout}
+          title="Log Out"
+          className="flex items-center justify-center md:justify-start gap-3 w-full px-2 md:px-4 py-3 rounded-xl text-white/70 hover:bg-[#2B3632] hover:text-white transition"
+        >
+          <LogOut size={18} className="shrink-0" />
+          <span className="hidden md:inline">Log Out</span>
+        </button>
         <button
           title="Live Support"
           className="flex items-center justify-center md:justify-start gap-3 w-full px-2 md:px-4 py-3 rounded-xl bg-[#D97745] text-white font-medium hover:opacity-90 transition"

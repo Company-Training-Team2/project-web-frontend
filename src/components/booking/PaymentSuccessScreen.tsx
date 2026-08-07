@@ -7,10 +7,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import SuccessIcon from "./SuccessIcon";
 import ConfirmationCard from "./ConfirmationCard";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { getPackageById, getVendorById } from "@/lib/mock/vendors";
 import { clearBookingDraft, generateConfirmationCode, useBookingDraft } from "@/lib/mock/bookingDraft";
+import { calculateOrderTotal } from "@/lib/mock/pricing";
 
 export default function PaymentSuccessScreen() {
   useRequireAuth();
@@ -18,13 +20,15 @@ export default function PaymentSuccessScreen() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "there";
 
-  // Same reasoning as CheckoutScreen: useSyncExternalStore avoids the
-  // server/client hydration mismatch a plain useState(getBookingDraft())
-  // read would cause.
+  // `draft` is undefined until sessionStorage has actually been checked
+  // (see bookingDraft.ts) — only redirect once that's resolved, otherwise a
+  // fresh page load bounces straight back to /vendors before the real value
+  // ever loads.
   const draft = useBookingDraft();
   const confirmationCode = useMemo(() => generateConfirmationCode(), []);
 
   useEffect(() => {
+    if (draft === undefined) return;
     if (!draft) {
       router.replace("/vendors");
       return;
@@ -34,13 +38,16 @@ export default function PaymentSuccessScreen() {
     clearBookingDraft();
   }, [draft, router]);
 
+  if (draft === undefined) return <LoadingScreen fullScreen={false} />;
   if (!draft) return null;
 
   const vendor = getVendorById(draft.vendorId);
   const pkg = getPackageById(draft.packageId);
   if (!vendor) return null;
 
-  const total = (draft.guestCount ?? 1) * (pkg?.pricePerGuest ?? vendor.price) + 1890 + 500;
+  // Same formula as OrderSummaryBlock on Checkout, so this confirmation
+  // shows the exact amount the customer just "paid" via InstaPay.
+  const { total } = calculateOrderTotal(draft.guestCount ?? 1, pkg?.pricePerGuest ?? vendor.price);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f1ea] px-6 py-16 text-center">

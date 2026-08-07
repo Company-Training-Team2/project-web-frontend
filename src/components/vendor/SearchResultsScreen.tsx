@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import MarketplaceHeader from "@/components/shared/MarketplaceHeader";
 import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
@@ -13,10 +14,16 @@ import Pagination from "./Pagination";
 import NoResultsFound from "./NoResultsFound";
 import { MOCK_VENDORS } from "@/lib/mock/vendors";
 
-export default function SearchResultsScreen() {
+function SearchResultsScreenInner() {
+  // MarketplaceHeader's nav links (Venues/Catering/Floral/Planning) send
+  // ?category=<id> — read it once on load so those links actually filter
+  // instead of always landing on the unfiltered default.
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category");
+
   const [filters, setFilters] = useState<SearchFilters>({
     location: "Alexandria, Egypt",
-    category: null,
+    category: initialCategory,
     minRating: 0,
     guestCount: 150,
   });
@@ -60,5 +67,13 @@ export default function SearchResultsScreen() {
       <MarketplaceFooter />
       <BottomNav active="browse" />
     </div>
+  );
+}
+
+export default function SearchResultsScreen() {
+  return (
+    <Suspense>
+      <SearchResultsScreenInner />
+    </Suspense>
   );
 }

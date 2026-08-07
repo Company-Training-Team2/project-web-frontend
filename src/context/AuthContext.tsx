@@ -33,7 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authService.login(payload);
     authService.saveSession(data);
     setUser(data.user);
-    router.push("/");
+    // "/" (app/page.tsx) is currently the Login screen itself — there's no
+    // real Home page yet (Home Flow is still unbuilt), so redirecting there
+    // would bounce a just-logged-in user straight back to Login. Land on
+    // Browse Vendors instead until a real Home page exists, then swap this.
+    router.push("/vendors");
   };
 
   const register = async (payload: RegisterPayload) => {

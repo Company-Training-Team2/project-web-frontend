@@ -1,14 +1,8 @@
-import Sidebar from "@/components/layout/Sidebar";
 import BrowseVendorsScreen from "@/components/vendor/BrowseVendorsScreen";
 
+// Customer-facing Browse Vendors only — the admin equivalent ("Vendor
+// Directory", the approval-queue screen) now lives at its own /admin/vendors
+// route so the two stop sharing this URL.
 export default function VendorsPage() {
-  return (
-    <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
-      <Sidebar />
-
-      <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <BrowseVendorsScreen />
-      </main>
-    </div>
-  );
+  return <BrowseVendorsScreen />;
 }

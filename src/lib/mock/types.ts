@@ -74,13 +74,23 @@ export interface MockBooking {
   notes?: string;
 }
 
-/** Mirrors the real Payment entity's field names. */
+/** Mirrors the real Payment entity's field names (`paymentMethod` uses the
+ * exact real `PaymentMethod` enum values: Cash/Visa/MasterCard/VodafoneCash/
+ * InstaPay/BankTransfer). There's no real payment gateway wired up anywhere
+ * in this codebase — checkout uses InstaPay as the single mocked method
+ * (matches the Egyptian market and needs no card-number fixtures), so
+ * `accountLabel`/`isConnected` are the fields that actually get used;
+ * `cardBrand`/`last4`/`expiry` are kept on the type for whenever a real
+ * card-based method is added, not currently populated. */
 export interface MockPayment {
   id: string;
   bookingId?: string;
   amount?: number;
   paymentMethod: "Visa" | "MasterCard" | "Cash" | "VodafoneCash" | "InstaPay" | "BankTransfer";
   paymentStatus?: "Pending" | "Paid" | "Failed" | "Refunded";
+  /** InstaPay: the linked mobile number/handle shown to the customer, e.g. "01xx xxx 214". */
+  accountLabel?: string;
+  isConnected?: boolean;
   cardBrand?: "Visa" | "Mastercard";
   last4?: string;
   expiry?: string;

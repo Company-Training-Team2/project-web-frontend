@@ -1,9 +1,14 @@
+"use client";
+
 import Sidebar from "@/components/layout/Sidebar";
 import ReportsHeader from "@/components/admin/reports/ReportsHeader";
 import StatsCards from "@/components/admin/reports/StatsCards";
 import BottomSection from "@/components/admin/reports/BottomSection";
+import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
 
 export default function ReportsPage() {
+  useRequireAdminAuth();
+
   return (
     <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
       <Sidebar />

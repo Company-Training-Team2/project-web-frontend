@@ -1,5 +1,6 @@
 import { CalendarDays, MapPin } from "lucide-react";
 import { MockVendor, MockPackage } from "@/lib/mock/types";
+import { parseDateOnly } from "@/lib/date";
 
 export default function ConfirmationCard({
   vendor,
@@ -17,7 +18,7 @@ export default function ConfirmationCard({
   confirmationCode: string;
 }) {
   const dateLabel = bookingDate
-    ? new Date(bookingDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    ? parseDateOnly(bookingDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
     : "—";
 
   return (

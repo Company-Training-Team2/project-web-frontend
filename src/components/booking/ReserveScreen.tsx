@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -9,26 +9,49 @@ import GuestCountCard from "./GuestCountCard";
 import PackageSelectionList from "./PackageSelectionList";
 import BudgetSummaryCard from "./BudgetSummaryCard";
 import SparkleFab from "@/components/shared/SparkleFab";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { getPackagesForVendor, getVendorById } from "@/lib/mock/vendors";
+import { MockPackage, MockVendor } from "@/lib/mock/types";
+import { getVendorDetail } from "@/services/vendor.service";
 import { saveBookingDraft } from "@/lib/mock/bookingDraft";
+import { toDateOnlyString } from "@/lib/date";
 
+// No useRequireAuth here on purpose — guests can browse this screen and pick
+// a date/package freely. An account is only required at the point an order
+// is actually placed, gated in CheckoutScreen's handlePay instead.
 function ReserveScreenInner() {
-  useRequireAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const vendorId = searchParams.get("vendorId") ?? "";
   const initialPackageId = searchParams.get("packageId");
 
-  const vendor = getVendorById(vendorId);
-  const packages = getPackagesForVendor(vendorId);
+  // Real WorkPostController.GetById is public and live — see
+  // getVendorDetail() in vendor.service.ts for the fixture fallback.
+  const [vendor, setVendor] = useState<MockVendor | null | undefined>(undefined);
+  const [packages, setPackages] = useState<MockPackage[]>([]);
 
   const [month, setMonth] = useState(new Date(2027, 4, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2027, 4, 18));
   const [guestCount, setGuestCount] = useState(120);
-  const [packageId, setPackageId] = useState<string | null>(initialPackageId ?? packages[0]?.id ?? null);
+  const [packageId, setPackageId] = useState<string | null>(initialPackageId);
+
+  useEffect(() => {
+    let cancelled = false;
+    getVendorDetail(vendorId).then((result) => {
+      if (cancelled) return;
+      setVendor(result?.vendor ?? null);
+      setPackages(result?.packages ?? []);
+      setPackageId((prev) => prev ?? result?.packages[0]?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [vendorId]);
+
+  if (vendor === undefined) {
+    return <LoadingScreen fullScreen={false} />;
+  }
 
   if (!vendor) {
     return (
@@ -44,7 +67,7 @@ function ReserveScreenInner() {
     saveBookingDraft({
       vendorId: vendor.id,
       packageId: selectedPackage?.id ?? "",
-      bookingDate: selectedDate?.toISOString().slice(0, 10),
+      bookingDate: selectedDate ? toDateOnlyString(selectedDate) : undefined,
       guestCount,
     });
     router.push("/booking/checkout");

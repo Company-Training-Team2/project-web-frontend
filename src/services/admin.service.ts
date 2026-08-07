@@ -1,10 +1,11 @@
-// Real, callable endpoints (AdminController — api/admin/*). NOT wired into
-// the /admin/vendors page yet: AdminVendorDto only has Id/UserId/Email/
+// Real, callable endpoints (AdminController — api/admin/*). Dashboard and
+// User Management are wired for real below. /admin/vendors (the approval
+// queue) is NOT wired: AdminVendorDto only has Id/UserId/Email/
 // BusinessName/BioDescription/PhoneNumber/City/ApprovalStatus/IsVerified —
 // no portfolio images, compliance documents, or verification-insight
-// fields the approval-queue UI needs, so that page reads
-// src/lib/mock/adminVendors.ts fixtures instead for now. Wire these in once
-// the backend grows a richer vendor-review payload.
+// fields that screen's UI needs, so it reads src/lib/mock/adminVendors.ts
+// fixtures instead for now (left as-is — out of scope, see plan). Wire it
+// in once the backend grows a richer vendor-review payload.
 import apiClient from "@/lib/axios";
 
 export interface AdminVendorDto {
@@ -26,7 +27,25 @@ export interface AdminUserDto {
   email: string;
   role: string;
   isActive: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
+  isEmailVerified: boolean;
   createdAt: string;
+  fullName?: string;
+  businessName?: string;
+}
+
+export interface AdminDashboardDto {
+  totalUsers: number;
+  totalCustomers: number;
+  totalVendors: number;
+  pendingVendorApprovals: number;
+  totalBookings: number;
+  bookingsThisMonth: number;
+  totalRevenue: number;
+  revenueThisMonth: number;
+  totalEvents: number;
+  activeWorkPosts: number;
 }
 
 export interface VendorDecisionPayload {
@@ -34,13 +53,15 @@ export interface VendorDecisionPayload {
 }
 
 export const adminService = {
-  async getDashboard(): Promise<unknown> {
-    const { data } = await apiClient.get("/admin/dashboard");
+  async getDashboard(): Promise<AdminDashboardDto> {
+    const { data } = await apiClient.get<AdminDashboardDto>("/admin/dashboard");
     return data;
   },
 
-  async getUsers(): Promise<AdminUserDto[]> {
-    const { data } = await apiClient.get<AdminUserDto[]>("/admin/users");
+  async getUsers(role?: string, isDeleted?: boolean, page = 1, pageSize = 50): Promise<AdminUserDto[]> {
+    const { data } = await apiClient.get<AdminUserDto[]>("/admin/users", {
+      params: { role, isDeleted, page, pageSize },
+    });
     return data;
   },
 

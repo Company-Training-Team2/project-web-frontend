@@ -3,16 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Camera } from "lucide-react";
-import Sidebar from "@/components/layout/Sidebar";
 
+// Was rendering <Sidebar/> — the admin executive-portal nav, wrong for a
+// customer settings page (see profileSettings.tsx for the full note). This
+// screen already has its own back-to-/profile top bar below.
 export default function EditProfile() {
   const [emailNotifications, setEmailNotifications] = useState(true);
 
   return (
-    <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
-      <Sidebar />
-
-      <main className="flex-1 overflow-x-hidden">
+    <div className="min-h-screen bg-[#EDE0D2] overflow-x-hidden">
+      <main className="overflow-x-hidden">
         {/* Top bar */}
         <div className="flex items-center gap-3 border-b border-[#DCCFC0] bg-[#FBF3EA] px-6 py-5">
           <Link

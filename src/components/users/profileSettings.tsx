@@ -1,18 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   User,
   Bookmark,
   CreditCard,
   Bell,
-  HelpCircle,
   LogOut,
   Search,
   Crown,
 } from "lucide-react";
-import Sidebar from "@/components/layout/Sidebar";
+import BottomNav from "@/components/shared/BottomNav";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { userService, UserProfile } from "@/services/user.service";
+import { homeService } from "@/services/home.service";
 
+// "Saved vendors"/"Payment methods"/"Notifications" used to point at
+// /profile/saved-vendors, /profile/payment-methods, /profile/notifications —
+// none of which exist (see README "Known issues"). Retargeted at the real
+// routes. "Help center" had nowhere real to go (no /help page anywhere in
+// this app) so it's dropped rather than link to a 404.
 const settingsItems = [
   {
     icon: User,
@@ -24,34 +33,46 @@ const settingsItems = [
     icon: Bookmark,
     title: "Saved vendors",
     desc: "View your shortlisted vendors",
-    href: "/profile/saved-vendors",
+    href: "/favorites",
   },
   {
     icon: CreditCard,
     title: "Payment methods",
     desc: "Manage cards and billing",
-    href: "/profile/payment-methods",
+    href: "/payment-methods",
   },
   {
     icon: Bell,
     title: "Notifications",
     desc: "Alerts and updates",
-    href: "/profile/notifications",
-  },
-  {
-    icon: HelpCircle,
-    title: "Help center",
-    desc: "FAQs and support contact",
-    href: "/help",
+    href: "/notifications",
   },
 ];
 
+// Was rendering <Sidebar/> from components/layout/Sidebar — that's the
+// admin executive-portal nav (Dashboard/User Management/Vendor Directory/
+// Analytics/Reports/Admin Settings, "EXECUTIVE PORTAL" branding, and a
+// logout button that sent customers to /admin/login). A signed-in customer
+// viewing their own profile was getting the admin's navigation instead of
+// their own. Swapped for the same BottomNav other customer screens use.
 export default function ProfileSettings() {
-  return (
-    <div className="min-h-screen bg-[#F6F1EB] flex overflow-x-hidden">
-      <Sidebar />
+  useRequireAuth();
+  const { logout } = useAuth();
 
-      <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [bookingCount, setBookingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    userService.getMe().then(setProfile).catch(() => setProfile(null));
+    homeService
+      .getDashboard()
+      .then((d) => setBookingCount(d.pendingBookingsCount + d.confirmedBookingsCount))
+      .catch(() => setBookingCount(null));
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#F6F1EB] overflow-x-hidden pb-20 lg:pb-6">
+      <main className="p-3 md:p-6 min-w-0 overflow-x-hidden">
         <div className="mx-auto w-full max-w-6xl">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-2xl font-bold text-foreground">Profile</h1>
@@ -69,23 +90,23 @@ export default function ProfileSettings() {
             {/* Profile summary card */}
             <div className="h-fit rounded-2xl border border-border bg-card p-6 text-center">
               <img
-                src="https://i.pravatar.cc/160?img=47"
-                alt="Amara Okonkwo"
+                src={profile?.avatarUrl || "https://i.pravatar.cc/160?img=47"}
+                alt={profile?.fullName ?? "Profile photo"}
                 className="mx-auto mb-4 h-24 w-24 rounded-full border-4 border-background object-cover shadow-sm"
               />
-              <h2 className="text-lg font-semibold">Amara Okonkwo</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                amara.okonkwo@design.com
-              </p>
+              <h2 className="text-lg font-semibold">{profile?.fullName || "—"}</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">{profile?.email ?? ""}</p>
 
               <div className="mt-4 flex items-center justify-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   <Crown className="h-3 w-3" />
                   Premium member
                 </span>
-                <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                  12 bookings
-                </span>
+                {bookingCount !== null ? (
+                  <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                    {bookingCount} bookings
+                  </span>
+                ) : null}
               </div>
 
               <Link
@@ -117,7 +138,10 @@ export default function ProfileSettings() {
                   </Link>
                 ))}
 
-                <button className="flex items-center gap-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-5 text-left transition-colors hover:bg-destructive/10">
+                <button
+                  onClick={() => logout()}
+                  className="flex items-center gap-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-5 text-left transition-colors hover:bg-destructive/10"
+                >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                     <LogOut className="h-5 w-5" />
                   </div>
@@ -155,6 +179,8 @@ export default function ProfileSettings() {
           </div>
         </div>
       </main>
+
+      <BottomNav active="profile" />
     </div>
   );
 }

@@ -21,6 +21,13 @@ export default function VendorCard({ vendor, layout = "list", className }: Vendo
     return (
       <div className={cn("overflow-hidden rounded-[16px] border border-[#e5ded2] bg-white", className)}>
         <div className="relative aspect-[16/10] w-full bg-[#e9dfd1]">
+          {vendor.images[0] ? (
+            <img
+              src={vendor.images[0]}
+              alt={vendor.businessName}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : null}
           <button
             aria-label="Save"
             className="absolute left-3 top-3 grid size-8 place-items-center rounded-full bg-white/90 text-[#252323]"
@@ -74,7 +81,11 @@ export default function VendorCard({ vendor, layout = "list", className }: Vendo
         className
       )}
     >
-      <div className="size-20 shrink-0 rounded-[12px] bg-[#e9dfd1]" />
+      <div className="size-20 shrink-0 overflow-hidden rounded-[12px] bg-[#e9dfd1]">
+        {vendor.images[0] ? (
+          <img src={vendor.images[0]} alt={vendor.businessName} className="h-full w-full object-cover" />
+        ) : null}
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#af3718]">

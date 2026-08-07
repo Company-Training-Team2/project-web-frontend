@@ -12,17 +12,17 @@ export default function PaymentSummaryCard({ booking }: { booking: MockBooking }
       <h3 className="font-serif text-[18px] font-bold text-[#252323]">Payment Summary</h3>
 
       <div className="mt-3 space-y-2 text-[13px] text-[#6d5d54]">
-        <div className="flex justify-between"><span>Subtotal</span><span>${booking.totalPrice.toLocaleString()}.00</span></div>
-        <div className="flex justify-between"><span>Concierge Fee (4%)</span><span>${concierge.toLocaleString()}.00</span></div>
-        <div className="flex justify-between"><span>Taxes &amp; Duties</span><span>${taxes.toLocaleString()}.00</span></div>
+        <div className="flex justify-between"><span>Subtotal</span><span>EGP {booking.totalPrice.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span>Concierge Fee (4%)</span><span>EGP {concierge.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span>Taxes &amp; Duties</span><span>EGP {taxes.toLocaleString()}</span></div>
         <div className="flex justify-between border-t border-[#e5ded2] pt-2 text-[14px] font-bold text-[#252323]">
-          <span>Total Amount</span><span className="text-[#af3718]">${total.toLocaleString()}.00</span>
+          <span>Total Amount</span><span className="text-[#af3718]">EGP {total.toLocaleString()}</span>
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between rounded-[10px] bg-[#f1f8f4] px-3 py-2">
         <StatusPill variant="success">Fully Paid</StatusPill>
-        <span className="text-[13px] font-bold text-[#2E9E68]">${total.toLocaleString()}.00</span>
+        <span className="text-[13px] font-bold text-[#2E9E68]">EGP {total.toLocaleString()}</span>
       </div>
 
       {/* Mock — no invoice generation endpoint yet. */}

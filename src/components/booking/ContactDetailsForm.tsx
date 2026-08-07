@@ -1,41 +1,39 @@
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
-import FormField from "@/components/auth/FormField";
-import { Input } from "@/components/ui/input";
 
+// Read-only confirmation of who's being contacted about this booking —
+// pulled straight from the signed-in account rather than editable inputs,
+// since there's nowhere else for these values to come from at checkout.
+// AuthUser (src/services/auth.service.ts) doesn't carry a phone number yet,
+// so that row is only shown when one is passed in.
 export default function ContactDetailsForm({
   fullName,
   email,
-  onFullNameChange,
-  onEmailChange,
+  phone,
 }: {
   fullName: string;
   email: string;
-  onFullNameChange: (v: string) => void;
-  onEmailChange: (v: string) => void;
+  phone?: string;
 }) {
   return (
     <div className="px-5 pt-6 lg:px-10">
       <SectionEyebrow>Where to reach you</SectionEyebrow>
-      <h3 className="mt-1 font-serif text-[20px] font-bold text-[#252323]">Contact details</h3>
+      <h3 className="mt-1 font-serif text-[20px] font-bold text-[#252323]">Contact Information</h3>
 
-      <div className="mt-3 space-y-3">
-        <FormField id="fullName" label="Full name">
-          <Input
-            id="fullName"
-            value={fullName}
-            onChange={(e) => onFullNameChange(e.target.value)}
-            className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
-          />
-        </FormField>
-        <FormField id="email" label="Email">
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-            className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
-          />
-        </FormField>
+      <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-3 rounded-[14px] border border-[#e5ded2] bg-white p-4 sm:grid-cols-2">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#a79a90]">Full Name</p>
+          <p className="mt-0.5 text-[14px] font-medium text-[#252323]">{fullName || "—"}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#a79a90]">Email Address</p>
+          <p className="mt-0.5 text-[14px] font-medium text-[#252323]">{email || "—"}</p>
+        </div>
+        {phone ? (
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#a79a90]">Phone Number</p>
+            <p className="mt-0.5 text-[14px] font-medium text-[#252323]">{phone}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

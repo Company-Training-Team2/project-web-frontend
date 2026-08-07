@@ -60,7 +60,7 @@ export default function MarketplaceHeader({ className }: { className?: string })
               </button>
               {isAuthenticated ? (
                 <Link
-                  href="/bookings"
+                  href="/profile"
                   className="grid size-8 place-items-center rounded-full bg-[#af3718] text-[12px] font-bold text-white"
                   aria-label="Account"
                 >
@@ -115,7 +115,7 @@ export default function MarketplaceHeader({ className }: { className?: string })
 
           {isAuthenticated ? (
             <Link
-              href="/bookings"
+              href="/profile"
               className="grid size-9 place-items-center rounded-full bg-[#af3718] text-[13px] font-bold text-white"
               aria-label="Account"
             >

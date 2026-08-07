@@ -8,12 +8,18 @@
 // Reading sessionStorage during the initial render (e.g. useState(() =>
 // getBookingDraft())) causes a server/client hydration mismatch — the
 // server has no `window`, so it always sees null, while the client sees the
-// real value immediately. useBookingDraft() below uses useSyncExternalStore
-// instead, which is the React-sanctioned way to read a browser-only external
-// store without that mismatch (and without the "setState in an effect"
-// anti-pattern of loading it in a useEffect).
+// real value immediately. An earlier version of useBookingDraft() used
+// useSyncExternalStore for this, which is the textbook-correct tool, but it
+// produced a real bug in practice on a full page load: the redirect guard's
+// effect in CheckoutScreen/PaymentSuccessScreen ran with the
+// getServerSnapshot() (null) value on the very first commit and navigated
+// away before the corrected client snapshot arrived. useState + useEffect
+// below is the more predictable fix — an explicit "hasLoaded" gate so
+// consumers can tell "haven't checked sessionStorage yet" apart from
+// "checked it and there's genuinely no draft," instead of relying on
+// useSyncExternalStore's commit-timing guarantees.
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "eventhub.booking.draft";
 
@@ -27,15 +33,31 @@ export interface BookingDraft {
   paymentMethodId?: string;
 }
 
+// getSnapshot for useSyncExternalStore (below) must return a referentially
+// STABLE value when nothing has actually changed — JSON.parse() on every
+// call would return a new object each time even when the underlying string
+// is identical, which makes React think the store is changing on every
+// render and throws "Maximum update depth exceeded". This tiny cache keyed
+// on the raw string is what keeps it stable.
+let cachedRaw: string | null = null;
+let cachedDraft: BookingDraft | null = null;
+
 export function getBookingDraft(): BookingDraft | null {
   if (typeof window === "undefined") return null;
   const raw = window.sessionStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as BookingDraft;
-  } catch {
+  if (raw === cachedRaw) return cachedDraft;
+
+  cachedRaw = raw;
+  if (!raw) {
+    cachedDraft = null;
     return null;
   }
+  try {
+    cachedDraft = JSON.parse(raw) as BookingDraft;
+  } catch {
+    cachedDraft = null;
+  }
+  return cachedDraft;
 }
 
 export function saveBookingDraft(partial: Partial<BookingDraft>): BookingDraft {
@@ -52,25 +74,22 @@ export function clearBookingDraft() {
   window.sessionStorage.removeItem(STORAGE_KEY);
 }
 
-function subscribe(callback: () => void) {
-  // sessionStorage writes from *this* tab (saveBookingDraft/clearBookingDraft)
-  // don't fire the "storage" event — only other tabs would. That's fine here:
-  // this flow is single-tab by design, and callers re-read the draft
-  // explicitly right after every save via the returned value.
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
+/** Hydration-safe read of the in-progress booking draft. `undefined` means
+ * "haven't checked sessionStorage yet" (server render + first client tick);
+ * `null` means "checked, and there genuinely isn't one." Consumers must
+ * treat these differently — see CheckoutScreen/PaymentSuccessScreen, which
+ * render a loading state on `undefined` and only redirect away on `null`. */
+export function useBookingDraft(): BookingDraft | null | undefined {
+  const [draft, setDraft] = useState<BookingDraft | null | undefined>(undefined);
 
-function getServerSnapshot(): BookingDraft | null {
-  return null;
-}
+  useEffect(() => {
+    // One-time read of a browser-only store on mount — not a case of
+    // deriving state from props/state that belongs in render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraft(getBookingDraft());
+  }, []);
 
-/** Hydration-safe read of the in-progress booking draft. Returns null on the
- * server and on the client's first paint, then the real sessionStorage value
- * once React reconciles — see the file header comment for why this can't
- * just be `useState(getBookingDraft())`. */
-export function useBookingDraft(): BookingDraft | null {
-  return useSyncExternalStore(subscribe, getBookingDraft, getServerSnapshot);
+  return draft;
 }
 
 /** Mock confirmation code generator for Payment Success — not a real booking

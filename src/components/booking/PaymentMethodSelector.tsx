@@ -1,66 +1,38 @@
-import Link from "next/link";
-import { Check, CreditCard, Plus } from "lucide-react";
+import { Info } from "lucide-react";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
 import { MockPayment } from "@/lib/mock/types";
-import { cn } from "@/lib/utils";
 
-export default function PaymentMethodSelector({
-  methods,
-  selectedId,
-  onSelect,
-}: {
-  methods: MockPayment[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}) {
+// No real payment gateway is wired up anywhere in this codebase — InstaPay
+// is mocked as the single connected account (matches the real
+// PaymentMethod.InstaPay backend enum value). There's nothing to "select"
+// since there's only one method, so this just displays the connection
+// status rather than offering a card list + add-new-card flow.
+export default function PaymentMethodSelector({ method }: { method: MockPayment }) {
   return (
     <div className="px-5 pt-6 lg:px-10">
       <SectionEyebrow>Secure Payment</SectionEyebrow>
-      <h3 className="mt-1 font-serif text-[20px] font-bold text-[#252323]">Payment method</h3>
+      <h3 className="mt-1 font-serif text-[20px] font-bold text-[#252323]">Payment Method</h3>
 
-      <div className="mt-3 space-y-2">
-        {methods.map((method) => {
-          const selected = method.id === selectedId;
-          return (
-            <button
-              key={method.id}
-              onClick={() => onSelect(method.id)}
-              className={cn(
-                "flex w-full items-center justify-between rounded-[12px] border p-3.5 transition",
-                selected ? "border-[#af3718] bg-[#fdf0ec]" : "border-[#e5ded2] bg-white"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <span className="grid size-9 place-items-center rounded-[8px] bg-[#252323] text-white">
-                  <CreditCard className="size-4" />
-                </span>
-                <div className="text-left">
-                  <p className="text-[14px] font-bold text-[#252323]">
-                    {method.cardBrand} •••• {method.last4}
-                  </p>
-                  <p className="text-[12px] text-[#a79a90]">Expires {method.expiry}</p>
-                </div>
-              </div>
-              <span
-                className={cn(
-                  "grid size-6 place-items-center rounded-full border-2",
-                  selected ? "border-[#af3718] bg-[#af3718] text-white" : "border-[#ded8d2]"
-                )}
-              >
-                {selected ? <Check className="size-3.5" /> : null}
-              </span>
-            </button>
-          );
-        })}
-
-        <Link
-          href="/payment-methods"
-          className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-dashed border-[#ded8d2] bg-white p-3.5 text-[13px] font-medium text-[#6d5d54]"
-        >
-          <Plus className="size-4" />
-          Add a new card
-        </Link>
+      <div className="mt-3 flex items-center justify-between rounded-[12px] border border-[#af3718] bg-[#fdf0ec] p-3.5">
+        <div className="flex items-center gap-3">
+          <span className="grid size-9 place-items-center rounded-[8px] bg-white text-[13px] font-black tracking-tight text-[#7B2FF2]">
+            IP
+          </span>
+          <div className="text-left">
+            <p className="text-[14px] font-bold text-[#252323]">InstaPay</p>
+            <p className="text-[12px] text-[#6d5d54]">
+              Secure instant payment
+              {method.isConnected ? <span className="text-[#2E9E68]"> • Connected Account</span> : null}
+            </p>
+          </div>
+        </div>
+        <span className="grid size-6 place-items-center rounded-full bg-[#af3718] text-white">✓</span>
       </div>
+
+      <p className="mt-2 flex items-start gap-1.5 text-[12px] text-[#a79a90]">
+        <Info className="mt-0.5 size-3.5 shrink-0" />
+        You&apos;ll be redirected to the InstaPay app to complete your payment securely.
+      </p>
     </div>
   );
 }

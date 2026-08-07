@@ -4,18 +4,16 @@ import { useState } from "react";
 
 import PaymentMethodsHeader from "./PaymentMethodsHeader";
 import SecureTransactionsBanner from "./SecureTransactionsBanner";
-import SavedCardRow from "./SavedCardRow";
-import AddNewCardButton from "./AddNewCardButton";
+import InstaPayAccountCard from "./InstaPayAccountCard";
 import SecurityDisclaimerCard from "./SecurityDisclaimerCard";
 import BottomNav from "@/components/shared/BottomNav";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { MOCK_PAYMENTS } from "@/lib/mock/bookings";
-import { MockPayment } from "@/lib/mock/types";
 
 export default function PaymentMethodsScreen() {
   useRequireAuth();
-  const [methods, setMethods] = useState<MockPayment[]>(MOCK_PAYMENTS);
+  const [account, setAccount] = useState(MOCK_PAYMENTS[0]);
 
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">
@@ -24,16 +22,12 @@ export default function PaymentMethodsScreen() {
         <SecureTransactionsBanner />
 
         <div className="px-4 pt-6 sm:px-5 lg:px-10">
-          <SectionEyebrow tone="muted">Saved Cards</SectionEyebrow>
-          <div className="mt-3 space-y-3">
-            {methods.map((method) => (
-              <SavedCardRow
-                key={method.id}
-                method={method}
-                onRemove={() => setMethods((prev) => prev.filter((m) => m.id !== method.id))}
-              />
-            ))}
-            <AddNewCardButton onAdd={(card) => setMethods((prev) => [...prev, card])} />
+          <SectionEyebrow tone="muted">Payment Method</SectionEyebrow>
+          <div className="mt-3">
+            <InstaPayAccountCard
+              account={account}
+              onToggle={() => setAccount((prev) => ({ ...prev, isConnected: !prev.isConnected }))}
+            />
           </div>
         </div>
 

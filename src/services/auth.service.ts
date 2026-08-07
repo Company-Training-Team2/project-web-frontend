@@ -39,6 +39,20 @@ export interface VerifyOtpPayload {
   purpose: "register" | "reset-password";
 }
 
+export interface AdminLoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface AdminMfaVerifyPayload {
+  email: string;
+  code: string;
+}
+
+export type AdminLoginResult =
+  | { requiresMfa: true; email: string; message?: string }
+  | { requiresMfa: false; session: AuthResponse };
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -138,6 +152,25 @@ export const authService = {
       email: payload.email,
       code: payload.code,
     });
+    return data;
+  },
+
+  // Real, working endpoint — POST /auth/admin/login (AuthController.AdminLogin).
+  // Returns either {requiresMfa:true, email, message} or a full session.
+  async adminLogin(payload: AdminLoginPayload): Promise<AdminLoginResult> {
+    const { data } = await apiClient.post<BackendAuthResponse>("/auth/admin/login", payload);
+    if (data.requiresMfa) {
+      return { requiresMfa: true, email: data.email ?? payload.email, message: data.message };
+    }
+    return { requiresMfa: false, session: toAuthResponse(data) };
+  },
+
+  // Real endpoint (POST /auth/admin/mfa/verify) — but it's a backend stub
+  // today: it always replies "MFA verification not yet implemented." and
+  // never actually issues a token (see AuthController.cs). Called for real
+  // anyway so this screen needs no changes once the backend finishes it.
+  async verifyAdminMfa(payload: AdminMfaVerifyPayload): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>("/auth/admin/mfa/verify", payload);
     return data;
   },
 

@@ -9,9 +9,9 @@ export default function SecurityDisclaimerCard() {
         <span className="h-px flex-1 bg-[#e5ded2]" />
       </div>
       <div className="rounded-[12px] bg-[#f3ede3] p-4 text-center text-[13px] leading-[1.5] text-[#6d5d54]">
-        Your payment information is encrypted and stored securely.
+        Your payment information is encrypted and handled securely by InstaPay.
         <br />
-        EventHub never shares your full card details with vendors.
+        EventHub never shares your account details with vendors.
       </div>
     </div>
   );

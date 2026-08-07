@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Lock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import CheckoutSummaryCard from "./CheckoutSummaryCard";
 import ContactDetailsForm from "./ContactDetailsForm";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import OrderSummaryBlock from "./OrderSummaryBlock";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
-import { Button } from "@/components/ui/button";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuth } from "@/context/AuthContext";
 import { getPackageById, getVendorById } from "@/lib/mock/vendors";
@@ -22,40 +22,44 @@ export default function CheckoutScreen() {
   const { user } = useAuth();
 
   const draft = useBookingDraft();
-  const [fullName, setFullName] = useState(user?.name ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
-  const [paymentId, setPaymentId] = useState<string | null>(MOCK_PAYMENTS.find((m) => m.isDefault)?.id ?? null);
   const [isPaying, setIsPaying] = useState(false);
+  const instaPay = MOCK_PAYMENTS[0];
 
   // Defensive: a manufactured multi-step flow with no server session — if a
   // visitor lands here directly without picking a vendor/package first, send
-  // them back to start the reservation.
+  // them back to start the reservation. `draft === undefined` means
+  // sessionStorage hasn't been checked yet (server render / first tick) —
+  // only redirect once it's resolved to a definite null/incomplete value.
   useEffect(() => {
+    if (draft === undefined) return;
     if (!draft || !draft.vendorId || !draft.packageId) {
       router.replace("/vendors");
     }
   }, [draft, router]);
 
+  if (draft === undefined) return <LoadingScreen fullScreen={false} />;
   if (!draft || !draft.vendorId) return null;
 
   const vendor = getVendorById(draft.vendorId);
   const pkg = getPackageById(draft.packageId);
   if (!vendor) return null;
 
+  const fullName = user?.name ?? "";
+  const email = user?.email ?? "";
+
   const handlePay = () => {
     setIsPaying(true);
-    saveBookingDraft({ contactName: fullName, contactEmail: email, paymentMethodId: paymentId ?? undefined });
+    saveBookingDraft({ contactName: fullName, contactEmail: email, paymentMethodId: instaPay.id });
+    // No real payment gateway — this just simulates the redirect-and-return
+    // round trip a real InstaPay checkout would do.
     setTimeout(() => {
       router.push(`/booking/success?name=${encodeURIComponent(fullName.split(" ")[0] || "there")}`);
     }, 900);
   };
 
-  const total =
-    (draft.guestCount ?? 1) * (pkg?.pricePerGuest ?? vendor.price) + 1890 + 500;
-
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-10">
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-2xl lg:max-w-5xl">
         <div className="px-4 pt-6 sm:px-5 lg:px-10">
           <button
             onClick={() => router.back()}
@@ -66,43 +70,29 @@ export default function CheckoutScreen() {
           </button>
           <div className="mt-4">
             <SectionEyebrow>Step 3 of 3</SectionEyebrow>
-            <h1 className="mt-1 font-serif text-[28px] font-bold text-[#252323]">Checkout</h1>
+            <h1 className="font-serif text-[28px] font-bold text-[#252323] lg:text-[36px]">Checkout</h1>
+            <p className="mt-1 text-[13px] text-[#6d5d54] lg:text-[14px]">
+              Review your reservation and complete your payment securely with InstaPay.
+            </p>
           </div>
         </div>
 
-        <div className="mt-4">
-          <CheckoutSummaryCard vendor={vendor} pkg={pkg} bookingDate={draft.bookingDate} guestCount={draft.guestCount} />
-        </div>
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:mt-8 lg:grid-cols-[1fr_360px] lg:items-start lg:px-10">
+          <div className="space-y-1 lg:space-y-6 lg:px-0">
+            <CheckoutSummaryCard vendor={vendor} pkg={pkg} bookingDate={draft.bookingDate} guestCount={draft.guestCount} />
+            <ContactDetailsForm fullName={fullName} email={email} />
+            <PaymentMethodSelector method={instaPay} />
+          </div>
 
-        <ContactDetailsForm fullName={fullName} email={email} onFullNameChange={setFullName} onEmailChange={setEmail} />
-        <PaymentMethodSelector methods={MOCK_PAYMENTS} selectedId={paymentId} onSelect={setPaymentId} />
-        <OrderSummaryBlock
-          packageName={pkg?.name ?? "Package"}
-          guestCount={draft.guestCount ?? 1}
-          pricePerGuest={pkg?.pricePerGuest ?? vendor.price}
-        />
-
-        <div className="px-4 pt-6 sm:px-5 lg:px-10">
-          <Button
-            onClick={handlePay}
-            disabled={isPaying}
-            className="h-[56px] w-full rounded-[10px] bg-[#af3718] text-[15px] font-bold hover:bg-[#9f3216]"
-          >
-            {isPaying ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Processing
-              </>
-            ) : (
-              <>
-                <Lock className="size-4" />
-                Pay {total.toLocaleString()} EGP
-              </>
-            )}
-          </Button>
-          <p className="mt-2 text-center text-[11px] text-[#a79a90]">
-            Encrypted &amp; secure • free cancellation for 48h
-          </p>
+          <div className="px-5 pt-6 lg:sticky lg:top-6 lg:px-0 lg:pt-0">
+            <OrderSummaryBlock
+              packageName={pkg?.name ?? "Package"}
+              guestCount={draft.guestCount ?? 1}
+              pricePerGuest={pkg?.pricePerGuest ?? vendor.price}
+              onPay={handlePay}
+              isPaying={isPaying}
+            />
+          </div>
         </div>
       </div>
     </div>

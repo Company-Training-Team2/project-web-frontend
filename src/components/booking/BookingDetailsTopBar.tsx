@@ -3,9 +3,10 @@ import { ArrowLeft, CalendarDays } from "lucide-react";
 
 import StatusPill from "@/components/shared/StatusPill";
 import { MockBooking } from "@/lib/mock/types";
+import { parseDateOnly } from "@/lib/date";
 
 export default function BookingDetailsTopBar({ booking }: { booking: MockBooking }) {
-  const dateLabel = new Date(booking.bookingDate).toLocaleDateString("en-US", {
+  const dateLabel = parseDateOnly(booking.bookingDate).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",

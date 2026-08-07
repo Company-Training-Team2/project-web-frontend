@@ -10,14 +10,17 @@ import { useAuth } from "@/context/AuthContext";
  * first route-gating pattern introduced — a plain useEffect redirect,
  * consistent with AuthContext's synchronous localStorage-backed check. */
 export function useRequireAuth() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Wait for AuthContext to finish reading localStorage on mount — until
+    // then isAuthenticated is provisionally false even for a logged-in user,
+    // and redirecting on that would bounce them to /login every load.
+    if (!isLoading && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  return { isAuthenticated };
+  return { isAuthenticated, isLoading };
 }

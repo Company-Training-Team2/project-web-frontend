@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import BrowseVendorsHeader from "./BrowseVendorsHeader";
 import VendorSearchBar from "./VendorSearchBar";
@@ -9,21 +10,32 @@ import VendorResultsRow from "./VendorResultsRow";
 import VendorList from "./VendorList";
 import BottomNav from "@/components/shared/BottomNav";
 import SparkleFab from "@/components/shared/SparkleFab";
-import { MOCK_VENDORS } from "@/lib/mock/vendors";
+import { MockVendor } from "@/lib/mock/types";
+import { searchVendors } from "@/services/vendor.service";
 
 export default function BrowseVendorsScreen() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [vendors, setVendors] = useState<MockVendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filtered = useMemo(() => {
-    return MOCK_VENDORS.filter((vendor) => {
-      const matchesCategory = !category || vendor.categoryId === category;
-      const matchesSearch =
-        !search ||
-        vendor.businessName.toLowerCase().includes(search.toLowerCase()) ||
-        vendor.workPostTitle.toLowerCase().includes(search.toLowerCase());
-      return matchesCategory && matchesSearch;
+  // Real WorkPostController.Search is public and live — this queries it for
+  // real, with a built-in fallback to the local fixtures if it's
+  // unreachable (see src/services/vendor.service.ts).
+  useEffect(() => {
+    let cancelled = false;
+    // A real network call kicking off on filter change, not derived state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoading(true);
+    searchVendors({ category: category ?? undefined, keyword: search || undefined }).then((results) => {
+      if (!cancelled) {
+        setVendors(results);
+        setIsLoading(false);
+      }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [search, category]);
 
   return (
@@ -37,8 +49,15 @@ export default function BrowseVendorsScreen() {
         <div className="mt-5 space-y-4">
           <VendorSearchBar value={search} onChange={setSearch} />
           <CategoryPillFilter active={category} onChange={setCategory} />
-          <VendorResultsRow count={filtered.length} city="Alexandria" />
-          <VendorList vendors={filtered} />
+          <VendorResultsRow count={vendors.length} city="Alexandria" />
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-16 text-[#a79a90]">
+              <Loader2 className="size-5 animate-spin" />
+              Loading vendors…
+            </div>
+          ) : (
+            <VendorList vendors={vendors} />
+          )}
         </div>
       </div>
 

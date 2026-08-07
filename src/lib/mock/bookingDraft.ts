@@ -31,6 +31,9 @@ export interface BookingDraft {
   contactName?: string;
   contactEmail?: string;
   paymentMethodId?: string;
+  /** Set once CheckoutScreen successfully persists a real Booking (see
+   * booking.service.ts). Absent for the simulated demo/mock-vendor flow. */
+  bookingId?: string;
 }
 
 // getSnapshot for useSyncExternalStore (below) must return a referentially

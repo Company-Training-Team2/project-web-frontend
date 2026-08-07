@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import AiPlannerHeader from "./AiPlannerHeader";
 import LiveDossierHeading from "./LiveDossierHeading";
@@ -11,12 +12,22 @@ import QuoteCallout from "./QuoteCallout";
 import InlineEventCard from "./InlineEventCard";
 import QuickActionPills from "./QuickActionPills";
 import ChatComposer from "./ChatComposer";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useAuth } from "@/context/AuthContext";
 import { MOCK_PLANNER_CONVERSATION, PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
 
+// No useRequireAuth here — a guest can open the AI Planner and read the
+// existing dossier. An account is only required the moment they actually
+// try to talk to it (send a message or tap a quick action), gated below.
 export default function AiPlannerScreen() {
-  useRequireAuth();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [messages, setMessages] = useState<PlannerMessage[]>(MOCK_PLANNER_CONVERSATION);
+
+  const requireAuthOrRedirect = () => {
+    if (isAuthenticated) return true;
+    router.push("/login?redirect=/ai-planner");
+    return false;
+  };
 
   const appendReply = (userText: string, replyText: string) => {
     setMessages((prev) => [
@@ -27,10 +38,12 @@ export default function AiPlannerScreen() {
   };
 
   const handleQuickAction = (action: string) => {
+    if (!requireAuthOrRedirect()) return;
     appendReply(action, QUICK_ACTION_REPLIES[action] ?? "Noted — updating your plan now.");
   };
 
   const handleSend = (text: string) => {
+    if (!requireAuthOrRedirect()) return;
     appendReply(text, "Got it — I'll factor that into your event dossier and follow up shortly.");
   };
 

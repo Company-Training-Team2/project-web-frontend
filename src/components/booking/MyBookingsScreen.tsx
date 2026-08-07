@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import MyBookingsHeader from "./MyBookingsHeader";
 import BookingFilterTabs, { BookingTab } from "./BookingFilterTabs";
 import BookingCard from "./BookingCard";
 import SparkleFab from "@/components/shared/SparkleFab";
 import BottomNav from "@/components/shared/BottomNav";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { MOCK_BOOKINGS } from "@/lib/mock/bookings";
+import { bookingService } from "@/services/booking.service";
 import { MockBooking } from "@/lib/mock/types";
 
 const TAB_TO_STATUS: Record<BookingTab, MockBooking["status"][]> = {
@@ -21,11 +22,20 @@ const TAB_TO_STATUS: Record<BookingTab, MockBooking["status"][]> = {
 export default function MyBookingsScreen() {
   useRequireAuth();
   const [tab, setTab] = useState<BookingTab>("Upcoming");
+  const [allBookings, setAllBookings] = useState<MockBooking[] | undefined>(undefined);
+
+  useEffect(() => {
+    bookingService.getMyBookings().then(setAllBookings);
+  }, []);
 
   const bookings = useMemo(
-    () => MOCK_BOOKINGS.filter((b) => TAB_TO_STATUS[tab].includes(b.status)),
-    [tab]
+    () => (allBookings ?? []).filter((b) => TAB_TO_STATUS[tab].includes(b.status)),
+    [allBookings, tab]
   );
+
+  if (allBookings === undefined) {
+    return <LoadingScreen fullScreen={false} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">

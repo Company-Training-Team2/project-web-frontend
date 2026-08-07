@@ -15,6 +15,18 @@ export const MOCK_CATEGORIES: Category[] = [
   { id: "planning", name: "Planning", description: "Full-service event coordination" },
 ];
 
+// Vendors sourced from the real backend (src/services/vendor.service.ts)
+// store the raw CategoryName string in `categoryId` (there's no shared
+// category-id space between the mock fixtures and real WorkPost.CategoryId
+// yet — no CategoryController/seed data exists). Falling back to a
+// case-insensitive name match here means real category names "just work"
+// as a display label even though they don't match a mock `id`.
 export function getCategoryById(id: string): Category | undefined {
-  return MOCK_CATEGORIES.find((c) => c.id === id);
+  return (
+    MOCK_CATEGORIES.find((c) => c.id === id) ??
+    MOCK_CATEGORIES.find((c) => c.name.toLowerCase() === id.toLowerCase()) ?? {
+      id,
+      name: id,
+    }
+  );
 }

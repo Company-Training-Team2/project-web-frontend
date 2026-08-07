@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
 import { MockVendor, MockPackage } from "@/lib/mock/types";
+import { parseDateOnly } from "@/lib/date";
 
 export default function CheckoutSummaryCard({
   vendor,
@@ -14,7 +15,7 @@ export default function CheckoutSummaryCard({
   guestCount?: number;
 }) {
   const dateLabel = bookingDate
-    ? new Date(bookingDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    ? parseDateOnly(bookingDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
     : "—";
 
   return (
@@ -23,7 +24,11 @@ export default function CheckoutSummaryCard({
       <h3 className="mt-1 font-serif text-[20px] font-bold text-[#252323]">Booking Details</h3>
 
       <div className="mt-3 flex items-center gap-4 rounded-[14px] border border-[#e5ded2] bg-white p-4">
-        <div className="size-16 shrink-0 rounded-[10px] bg-[#e9dfd1] sm:size-20" />
+        <div className="size-16 shrink-0 overflow-hidden rounded-[10px] bg-[#e9dfd1] sm:size-20">
+          {vendor.images[0] ? (
+            <img src={vendor.images[0]} alt={vendor.businessName} className="h-full w-full object-cover" />
+          ) : null}
+        </div>
         <div className="min-w-0">
           <p className="truncate font-serif text-[16px] font-bold text-[#252323] sm:text-[18px]">
             {vendor.businessName}

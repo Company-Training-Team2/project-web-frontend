@@ -9,12 +9,10 @@ import { cn } from "@/lib/utils";
 type NavKey = "home" | "browse" | "bookings" | "favorites" | "profile";
 
 const ITEMS: { key: NavKey; label: string; href: string; icon: typeof House }[] = [
-  { key: "home", label: "Home", href: "/vendors", icon: House },
+  { key: "home", label: "Home", href: "/home", icon: House },
   { key: "browse", label: "Browse", href: "/vendors", icon: Compass },
   { key: "bookings", label: "Bookings", href: "/bookings", icon: CalendarDays },
-  // No dedicated Favorites screen exists yet (Home Flow) — /vendors/search
-  // is the closest real page. Swap once Home Flow's Favorites page ships.
-  { key: "favorites", label: "Fav", href: "/vendors/search", icon: Heart },
+  { key: "favorites", label: "Fav", href: "/favorites", icon: Heart },
   { key: "profile", label: "Profile", href: "/profile", icon: User },
 ];
 

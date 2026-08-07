@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,9 +25,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function LoginForm() {
+function LoginFormInner() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  // Screens that require an account only at the point of action (AI
+  // Planner's first message, Checkout's "Pay" button) send guests here as
+  // /login?redirect=/original/path so a successful sign-in resumes exactly
+  // where they left off instead of dumping them on the Home landing.
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? undefined;
 
   const {
     register,
@@ -37,7 +44,7 @@ export default function LoginForm() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      await login(data);
+      await login(data, redirectTo);
       toast.success("Welcome back!");
     } catch (error: unknown) {
       toast.error(getAuthErrorMessage(error, "Invalid email or password."));
@@ -138,5 +145,15 @@ export default function LoginForm() {
         </p>
       </div>
     </AuthCard>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary (same pattern as
+// ReserveScreen) so the /login route doesn't opt out of static rendering.
+export default function LoginForm() {
+  return (
+    <Suspense>
+      <LoginFormInner />
+    </Suspense>
   );
 }

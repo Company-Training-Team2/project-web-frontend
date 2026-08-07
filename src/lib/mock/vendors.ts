@@ -20,7 +20,7 @@ export const MOCK_VENDORS: MockVendor[] = [
     reviewCount: 328,
     eventsCount: 640,
     yearsExperience: 12,
-    images: ["/vendor-placeholder-1.jpg"],
+    images: ["https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"],
     businessName: "Savoré House",
     bioDescription: "Michelin-trained fine dining catering studio.",
     credential: "Michelin-trained",
@@ -38,7 +38,7 @@ export const MOCK_VENDORS: MockVendor[] = [
     reviewCount: 214,
     eventsCount: 410,
     yearsExperience: 8,
-    images: ["/vendor-placeholder-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80"],
     businessName: "Atelier Fleur",
     bioDescription: "Makeup artistry studio specializing in bridal looks.",
   },
@@ -55,7 +55,7 @@ export const MOCK_VENDORS: MockVendor[] = [
     reviewCount: 156,
     eventsCount: 290,
     yearsExperience: 6,
-    images: ["/vendor-placeholder-3.jpg"],
+    images: ["https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80"],
     businessName: "Maison Lumière",
     bioDescription: "Decor and floral styling for waterside receptions.",
   },
@@ -72,7 +72,7 @@ export const MOCK_VENDORS: MockVendor[] = [
     reviewCount: 98,
     eventsCount: 140,
     yearsExperience: 15,
-    images: ["/vendor-placeholder-4.jpg"],
+    images: ["https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80"],
     businessName: "Villa Serena",
     bioDescription: "Private lakeside estate venue for weddings and galas.",
   },
@@ -89,7 +89,7 @@ export const MOCK_VENDORS: MockVendor[] = [
     reviewCount: 87,
     eventsCount: 120,
     yearsExperience: 5,
-    images: ["/vendor-placeholder-5.jpg"],
+    images: ["https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80"],
     businessName: "The Gilded Table",
     bioDescription: "Tablescape and place-setting design studio.",
   },
@@ -140,8 +140,20 @@ export const MOCK_REVIEWS: MockReview[] = [
   },
 ];
 
+// Real WorkPosts resolved at runtime (e.g. by booking.service.ts's
+// getMyBookings(), enriching real bookings for BookingCard/BookingDetails
+// screens that only know how to look vendors up synchronously by id via
+// getVendorById below) get cached here so that same synchronous lookup
+// finds them too, without every presentational component needing to switch
+// to async data fetching just to display a real vendor's name/image.
+const resolvedVendorCache = new Map<string, MockVendor>();
+
+export function registerResolvedVendor(vendor: MockVendor) {
+  resolvedVendorCache.set(vendor.id, vendor);
+}
+
 export function getVendorById(id: string): MockVendor | undefined {
-  return MOCK_VENDORS.find((v) => v.id === id);
+  return resolvedVendorCache.get(id) ?? MOCK_VENDORS.find((v) => v.id === id);
 }
 
 export function getPackagesForVendor(vendorId: string): MockPackage[] {

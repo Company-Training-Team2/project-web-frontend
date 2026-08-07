@@ -3,17 +3,19 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { authService, AuthUser, LoginPayload, RegisterPayload } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
 
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginPayload, redirectTo?: string) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -21,23 +23,64 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const savedUser = authService.getUser();
-    const token = authService.getToken();
-    return savedUser && token ? savedUser : null;
-  });
-  const [isLoading] = useState(false);
+  // Session lives in localStorage, which the server can never see — reading
+  // it inside useState's initializer (the old approach) made the very first
+  // client render disagree with the server-rendered HTML whenever a session
+  // existed, throwing a hydration error and, worse, leaving a one-frame
+  // window where useRequireAuth/useRequireAdminAuth saw isAuthenticated as
+  // false and redirected an already-logged-in user to /login. Starting from
+  // `null`/`isLoading: true` on both server and first client paint, then
+  // reading the real session in an effect (client-only, post-hydration),
+  // keeps the two in sync and gives the guard hooks a load signal to wait on.
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const login = async (payload: LoginPayload) => {
+  useEffect(() => {
+    // One-time read of a browser-only store (localStorage) on mount — not a
+    // case of deriving state from props/state that belongs in render. Same
+    // justification as useBookingDraft() in lib/mock/bookingDraft.ts.
+    const savedUser = authService.getUser();
+    const token = authService.getToken();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUser(savedUser && token ? savedUser : null);
+    setIsLoading(false);
+  }, []);
+
+  const login = async (payload: LoginPayload, redirectTo?: string) => {
     const data = await authService.login(payload);
     authService.saveSession(data);
     setUser(data.user);
-    // "/" (app/page.tsx) is currently the Login screen itself — there's no
-    // real Home page yet (Home Flow is still unbuilt), so redirecting there
-    // would bounce a just-logged-in user straight back to Login. Land on
-    // Browse Vendors instead until a real Home page exists, then swap this.
-    router.push("/vendors");
+
+    const fallback = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/";
+
+    // A customer whose profile is still missing the basics (never finished
+    // /complete-profile after registering) gets routed there instead of
+    // wherever they were headed — HomeController's dashboard, for one,
+    // 500s without a CustomerProfile row filled in. Best-effort: if this
+    // check itself fails (backend/DB down), don't block sign-in on it.
+    if (data.user.role === "customer") {
+      try {
+        const profile = await userService.getMe();
+        if (!profile.fullName || !profile.city) {
+          // Carry the original destination through so completing the
+          // profile can still land back on, say, /booking/checkout instead
+          // of losing that context.
+          router.push(`/complete-profile?redirect=${encodeURIComponent(fallback)}`);
+          return;
+        }
+      } catch {
+        // fall through to the normal redirect below
+      }
+    }
+
+    // "/" (app/page.tsx) is now the real public Home landing (see
+    // components/home/homePage.tsx) rather than the Login screen, so it's
+    // safe to land a just-logged-in user back there by default. Screens that
+    // sent a guest to /login mid-task (AI Planner, Checkout's "Pay" button)
+    // pass `redirectTo` so login returns them to what they were doing
+    // instead of losing their place.
+    router.push(fallback);
   };
 
   const register = async (payload: RegisterPayload) => {

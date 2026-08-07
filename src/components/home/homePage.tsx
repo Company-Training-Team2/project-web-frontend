@@ -1,32 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  Heart, Bell, User, Search, MapPin, Calendar, ChevronDown, 
+import { useRouter } from "next/navigation";
+import {
+  Heart, Bell, Search, MapPin,
   ShieldCheck, Headphones, CreditCard, Lock, Star, ArrowRight,
-  Share, Info 
+  Share, Info
 } from "lucide-react";
+
+import { useAuth } from "@/context/AuthContext";
+import { platformService, PlatformStats } from "@/services/platform.service";
+import { searchVendors } from "@/services/vendor.service";
+import { homeService, HomeDashboard } from "@/services/home.service";
+import { MockVendor } from "@/lib/mock/types";
 
 // --- بيانات وهمية للتصميم (تم تحديث روابط الصور لضمان ظهورها) ---
 const navLinks = [
-  { name: "Marketplace", href: "#", active: true },
-  { name: "Packages", href: "#" },
-  { name: "Upcoming Events", href: "#" },
-  { name: "How It Works", href: "#" },
-  { name: "Testimonials", href: "#" },
+  { name: "Marketplace", href: "/vendors", active: true },
+  { name: "Packages", href: "#packages" },
+  { name: "Upcoming Events", href: "#occasions" },
+  { name: "How It Works", href: "#trust" },
+  { name: "Testimonials", href: "#testimonials" },
 ];
 
 const occasions = [
-  { name: "Weddings", vendors: "740", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
-  { name: "Corporate Galas", vendors: "512", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80" },
-  { name: "Private Dining", vendors: "386", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=600&q=80" },
-  { name: "Decor & Florals", vendors: "628", img: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80" },
+  { name: "Weddings", categoryId: "venue", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
+  { name: "Corporate Galas", categoryId: "planning", img: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80" },
+  { name: "Private Dining", categoryId: "catering", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=600&q=80" },
+  { name: "Decor & Florals", categoryId: "florals", img: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80" },
 ];
 
-const featuredVendors = [
-  { name: "Maison Lumière", role: "Photography", location: "Paris, France", price: "3,200", rating: "4.9", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80" },
-  { name: "Atelier Fleur", role: "Floral Design", location: "Milan, Italy", price: "1,800", rating: "4.8", img: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=600&q=80" },
-  { name: "Savoré House", role: "Fine Dining", location: "Lisbon, Portugal", price: "120/guest", rating: "5.0", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80" },
+// Fallback stock photos used when a real WorkPost has no uploaded image yet.
+const FALLBACK_VENDOR_IMAGES = [
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
 ];
 
 const packages = [
@@ -41,13 +50,55 @@ const testimonials = [
 ];
 
 export default function LandingPage() {
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [vendors, setVendors] = useState<MockVendor[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [dashboard, setDashboard] = useState<HomeDashboard | null>(null);
+
+  useEffect(() => {
+    platformService
+      .getStats()
+      .then(setStats)
+      .catch(() => setStats(null)); // public endpoint down (e.g. DB unreachable) — hero/stats just fall back to copy below
+    searchVendors({ pageSize: 3 })
+      .then(setVendors)
+      .catch(() => setVendors([]));
+  }, []);
+
+  // Personalized strip for signed-in customers — GET /api/home/dashboard.
+  // Guests (and vendors/admins, who have no CustomerProfile) never call
+  // this, and any failure (backend down, profile incomplete) just hides it
+  // rather than breaking the public landing page underneath it.
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "customer") {
+      // Clears a previous user's dashboard on logout rather than leaving it
+      // stale on screen — not deriving render state, syncing to auth state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDashboard(null);
+      return;
+    }
+    homeService
+      .getDashboard()
+      .then(setDashboard)
+      .catch(() => setDashboard(null));
+  }, [isAuthenticated, user?.role]);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (keyword.trim()) params.set("q", keyword.trim());
+    router.push(`/vendors/search${params.toString() ? `?${params}` : ""}`);
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F0EB] text-[#1A1A1A] selection:bg-[#A3391C] selection:text-white font-sans">
       
       {/* --- 1. HEADER --- */}
-      <header className="sticky top-0 z-50 border-b border-[#E3DCD2] bg-[#F5F0EB]/90 px-6 py-4 backdrop-blur-md md:px-12">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <Link href="/" className="font-serif text-3xl font-bold tracking-tight text-[#A3391C]">
+      <header className="sticky top-0 z-50 border-b border-[#E3DCD2] bg-[#F5F0EB]/90 px-4 py-4 backdrop-blur-md sm:px-6 md:px-12">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+          <Link href="/" className="shrink-0 font-serif text-xl font-bold tracking-tight text-[#A3391C] sm:text-2xl lg:text-3xl">
             EventHub
           </Link>
           
@@ -63,7 +114,7 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-2.5 sm:gap-4">
   {/* Heart Icon */}
     <Link href="/favorites" className="text-[#5A524A] hover:text-[#A3391C] transition-colors">
     <Heart className="h-5 w-5" />
@@ -74,13 +125,55 @@ export default function LandingPage() {
     <Bell className="h-5 w-5" />
     </Link>
 
-    <button className="text-[#5A524A] hover:text-[#A3391C]"><User className="h-5 w-5" /></button>
-    <Link href="/register-option" className="ml-2 rounded-md bg-[#A3391C] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#8B2E17]">
+    {isAuthenticated ? (
+      <Link
+        href="/profile"
+        aria-label="Account"
+        className="grid size-8 shrink-0 place-items-center rounded-full bg-[#A3391C] text-xs font-bold text-white"
+      >
+        {user?.name?.[0]?.toUpperCase() ?? "U"}
+      </Link>
+    ) : (
+      <Link href="/login" className="whitespace-nowrap text-sm font-bold text-[#5A524A] hover:text-[#A3391C]">
+        Sign In
+      </Link>
+    )}
+    {/* Secondary CTA — hidden below sm: to keep the mobile header on one
+        row; still reachable via /register-option's own vendor path. */}
+    <Link href="/register-option" className="ml-1 hidden shrink-0 rounded-md bg-[#A3391C] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#8B2E17] sm:ml-2 sm:inline-block">
         Partner with Us
     </Link>
         </div>
         </div>
       </header>
+
+      {/* --- Personalized strip (signed-in customers only) --- */}
+      {dashboard ? (
+        <div className="bg-[#2F4A3E] px-6 py-3 text-white md:px-12">
+          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+            <p className="text-sm">
+              Welcome back, <span className="font-bold">{dashboard.customerName}</span>
+              {dashboard.nextEvent ? (
+                <>
+                  {" "}
+                  — your next event, <span className="font-bold">{dashboard.nextEvent.name}</span>, is in{" "}
+                  {dashboard.nextEvent.daysRemaining} day{dashboard.nextEvent.daysRemaining === 1 ? "" : "s"}.
+                </>
+              ) : (
+                " — no upcoming events yet."
+              )}
+            </p>
+            <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-wider">
+              <Link href="/bookings" className="hover:underline">
+                {dashboard.pendingBookingsCount + dashboard.confirmedBookingsCount} Bookings
+              </Link>
+              <Link href="/favorites" className="hover:underline">
+                {dashboard.favoritesCount} Favorites
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* --- 2. HERO SECTION --- */}
       <section className="relative h-[85vh] min-h-[650px] w-full">
@@ -95,59 +188,82 @@ export default function LandingPage() {
             Extraordinary events, curated <br /> with intention.
           </h1>
           
-          {/* Search Bar */}
+          {/* Search Bar — wired to the real GET /workposts/search flow via /vendors/search */}
           <div className="mt-12 flex w-full max-w-4xl flex-col items-center rounded-xl bg-white p-3 shadow-2xl md:flex-row md:p-2">
             <div className="flex w-full flex-1 items-center gap-3 border-b border-[#E3DCD2] px-4 py-3 md:border-b-0 md:border-r">
               <MapPin className="h-5 w-5 text-[#A3391C]" />
-              <input type="text" placeholder="Where is your event?" className="w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#8A827A] outline-none" />
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="Vendor, city, or event type"
+                className="w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#8A827A] outline-none"
+              />
             </div>
-            <div className="flex w-full flex-1 items-center gap-3 border-b border-[#E3DCD2] px-4 py-3 md:border-b-0 md:border-r">
-              <Calendar className="h-5 w-5 text-[#A3391C]" />
-              <input type="text" placeholder="Select Date" className="w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#8A827A] outline-none" />
-            </div>
-            <div className="flex w-full flex-1 items-center gap-3 px-4 py-3 md:border-r">
-              <span className="text-sm font-medium text-[#1A1A1A]">Wedding</span>
-              <ChevronDown className="ml-auto h-4 w-4 text-[#8A827A]" />
-            </div>
-            <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#A3391C] px-6 py-3 font-bold text-white transition hover:bg-[#8B2E17] md:mt-0 md:w-auto md:rounded-md">
+            <button
+              onClick={handleSearch}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#A3391C] px-6 py-3 font-bold text-white transition hover:bg-[#8B2E17] md:mt-0 md:w-auto md:rounded-md"
+            >
               Search Vendors <Search className="h-4 w-4" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* --- 3. STATS BAR --- */}
+      {/* --- 3. STATS BAR --- real numbers from GET /api/platform/stats (public);
+           falls back to illustrative marketing copy if the backend/DB is
+           unreachable, so the section never shows a broken zero. */}
       <section className="bg-[#EBE5DB] py-12">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-y-8 px-6 text-center md:grid-cols-4">
           <div><span className="font-serif text-4xl font-bold text-[#2F4A3E]">24/7</span><p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Concierge</p></div>
-          <div><span className="font-serif text-4xl font-bold text-[#2F4A3E]">98%</span><p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Satisfaction</p></div>
-          <div><span className="font-serif text-4xl font-bold text-[#2F4A3E]">10K+</span><p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Bookings</p></div>
-          <div><span className="font-serif text-4xl font-bold text-[#2F4A3E]">2,500+</span><p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Verified Vendors</p></div>
+          <div>
+            <span className="font-serif text-4xl font-bold text-[#2F4A3E]">
+              {stats ? `${stats.averagePlatformRating.toFixed(1)}★` : "98%"}
+            </span>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">{stats ? "Avg. Rating" : "Satisfaction"}</p>
+          </div>
+          <div>
+            <span className="font-serif text-4xl font-bold text-[#2F4A3E]">
+              {stats ? stats.totalCompletedBookings.toLocaleString() : "10K+"}
+            </span>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Bookings</p>
+          </div>
+          <div>
+            <span className="font-serif text-4xl font-bold text-[#2F4A3E]">
+              {stats ? stats.totalVendors.toLocaleString() : "2,500+"}
+            </span>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#5A524A]">Verified Vendors</p>
+          </div>
         </div>
       </section>
 
-      {/* --- 4. OCCASIONS --- */}
-      <section className="bg-[#F5F0EB] px-6 py-24 md:px-12">
+      {/* --- 4. OCCASIONS --- category tiles route into the real, live
+           GET /workposts/search flow via /vendors/search?category=... */}
+      <section id="occasions" className="bg-[#F5F0EB] px-6 py-24 md:px-12">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 flex flex-col items-start justify-between md:flex-row md:items-end">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#A3391C]">Curated Categories</span>
               <h2 className="mt-2 font-serif text-4xl font-bold text-[#1A1A1A] md:text-5xl">Occasions worth remembering</h2>
             </div>
-            <Link href="#" className="mt-4 flex items-center gap-1 text-sm font-bold text-[#1A1A1A] hover:underline md:mt-0">Explore all categories <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/vendors" className="mt-4 flex items-center gap-1 text-sm font-bold text-[#1A1A1A] hover:underline md:mt-0">Explore all categories <ArrowRight className="h-4 w-4" /></Link>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {occasions.map((item) => (
-              <div key={item.name} className="group relative h-[320px] overflow-hidden rounded-2xl">
-                {/* تم إصلاح الصور هنا */}
+              <Link
+                key={item.name}
+                href={`/vendors/search?category=${item.categoryId}`}
+                className="group relative h-[320px] overflow-hidden rounded-2xl"
+              >
                 <img src={item.img} alt={item.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <p className="text-lg font-bold">{item.name}</p>
-                  <p className="mt-1 text-xs font-light text-white/80">{item.vendors} verified vendors</p>
+                  <p className="mt-1 text-xs font-light text-white/80">Browse vendors</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -163,28 +279,35 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-            {featuredVendors.map((vendor) => (
-              <div key={vendor.name} className="rounded-2xl border border-[#E3DCD2] bg-white p-4 pb-6 transition hover:shadow-lg">
+            {(vendors.length > 0 ? vendors : []).map((vendor, i) => (
+              <Link
+                key={vendor.id}
+                href={`/vendors/${vendor.id}`}
+                className="rounded-2xl border border-[#E3DCD2] bg-white p-4 pb-6 transition hover:shadow-lg"
+              >
                 <div className="relative h-56 w-full overflow-hidden rounded-xl">
-                  {/* تم إصلاح الصور هنا */}
-                  <img src={vendor.img} alt={vendor.name} className="h-full w-full object-cover" />
+                  <img
+                    src={vendor.images[0] ?? FALLBACK_VENDOR_IMAGES[i % FALLBACK_VENDOR_IMAGES.length]}
+                    alt={vendor.businessName}
+                    className="h-full w-full object-cover"
+                  />
                   <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold shadow-sm">
-                     <Star className="h-3 w-3 fill-[#D4A24C] text-[#D4A24C]" /> {vendor.rating}
+                     <Star className="h-3 w-3 fill-[#D4A24C] text-[#D4A24C]" /> {vendor.rating.toFixed(1)}
                   </div>
                 </div>
                 <div className="mt-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#A3391C]">{vendor.role}</p>
-                  <h3 className="mt-1 text-xl font-bold text-[#1A1A1A]">{vendor.name}</h3>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#5A524A]"><MapPin className="h-3 w-3" /> {vendor.location}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#A3391C]">{vendor.categoryId}</p>
+                  <h3 className="mt-1 text-xl font-bold text-[#1A1A1A]">{vendor.businessName}</h3>
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#5A524A]"><MapPin className="h-3 w-3" /> {vendor.city}</p>
                   <div className="mt-5 flex items-center justify-between border-t border-[#E3DCD2] pt-4">
-                    <button className="rounded border border-[#A3391C] px-4 py-1.5 text-xs font-bold uppercase text-[#A3391C] transition hover:bg-[#A3391C] hover:text-white">View profile</button>
+                    <span className="rounded border border-[#A3391C] px-4 py-1.5 text-xs font-bold uppercase text-[#A3391C] transition hover:bg-[#A3391C] hover:text-white">View profile</span>
                     <div className="text-right">
                       <p className="text-[9px] font-bold uppercase tracking-wider text-[#5A524A]">From</p>
                       <p className="font-serif text-2xl font-bold text-[#A3391C]">${vendor.price}</p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -236,7 +359,7 @@ export default function LandingPage() {
           <h2 className="mt-2 font-serif text-4xl font-bold text-white md:text-5xl">Premium packages</h2>
           
           <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {packages.map((pkg, idx) => (
+            {packages.map((pkg) => (
               <div 
                 key={pkg.name} 
                 className={`relative flex flex-col rounded-2xl p-8 text-left transition hover:-translate-y-1 ${
@@ -289,7 +412,7 @@ export default function LandingPage() {
                 <div className="flex gap-1 text-[#A87C41]">
                   {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
                 </div>
-                <p className="mt-4 font-serif text-lg italic leading-relaxed text-[#1A1A1A]">"{test.quote}"</p>
+                <p className="mt-4 font-serif text-lg italic leading-relaxed text-[#1A1A1A]">&ldquo;{test.quote}&rdquo;</p>
                 <div className="mt-6 flex items-center gap-3">
                   <img src={test.img} alt={test.name} className="h-10 w-10 rounded-full object-cover" />
                   <div>
@@ -307,9 +430,9 @@ export default function LandingPage() {
       <section className="bg-[#A3391C] px-6 py-24 text-center md:px-12">
         <div className="mx-auto max-w-4xl">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">Begin the story</span>
-          <h2 className="mt-2 font-serif text-4xl font-bold text-white md:text-6xl">Let's create something <br/> unforgettable together</h2>
+          <h2 className="mt-2 font-serif text-4xl font-bold text-white md:text-6xl">Let&apos;s create something <br/> unforgettable together</h2>
           <p className="mx-auto mt-4 max-w-lg text-sm text-white/70">Tell us about your occasion and your concierge will curate a bespoke shortlist within 24 hours.</p>
-          <button className="mt-8 rounded bg-white px-8 py-3 text-xs font-bold uppercase tracking-wider text-[#A3391C] transition hover:bg-gray-100">Start planning — it's free</button>
+          <button className="mt-8 rounded bg-white px-8 py-3 text-xs font-bold uppercase tracking-wider text-[#A3391C] transition hover:bg-gray-100">Start planning — it&apos;s free</button>
         </div>
       </section>
 
@@ -318,7 +441,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl border-b border-[#D6CDC1] pb-10 lg:flex lg:justify-between">
            <div className="max-w-sm">
              <Link href="/" className="font-serif text-3xl font-bold tracking-tight text-[#A3391C]">EventHub</Link>
-             <p className="mt-4 text-xs leading-relaxed text-[#5A524A]">The curated marketplace for extraordinary events — connecting discerning hosts with the world's finest vendors.</p>
+             <p className="mt-4 text-xs leading-relaxed text-[#5A524A]">The curated marketplace for extraordinary events — connecting discerning hosts with the world&apos;s finest vendors.</p>
            </div>
            
            <div className="mt-10 grid grid-cols-2 gap-10 lg:mt-0 lg:gap-20">

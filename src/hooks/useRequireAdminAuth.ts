@@ -10,17 +10,17 @@ import { useAuth } from "@/context/AuthContext";
  * /analytics, /admin/reports); this is the first one, applied uniformly now
  * that a real Admin Login page exists to redirect to. */
 export function useRequireAdminAuth() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const isAdmin = isAuthenticated && user?.role === "admin";
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("[useRequireAdminAuth]", { isAuthenticated, role: user?.role, isAdmin });
-    if (!isAdmin) {
+    // Wait for AuthContext to finish reading localStorage on mount — see the
+    // comment in useRequireAuth.ts for why this matters.
+    if (!isLoading && !isAdmin) {
       router.replace("/admin/login");
     }
-  }, [isAdmin, router, isAuthenticated, user]);
+  }, [isLoading, isAdmin, router]);
 
-  return { isAdmin };
+  return { isAdmin, isLoading };
 }

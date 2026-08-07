@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 
 import VendorHeroCarousel from "./VendorHeroCarousel";
@@ -10,16 +10,39 @@ import NextOpenDates from "./NextOpenDates";
 import PackageTiers from "./PackageTiers";
 import VendorReviews from "./VendorReviews";
 import StickyBookBar from "./StickyBookBar";
-import { getPackagesForVendor, getReviewsForVendor, getVendorById } from "@/lib/mock/vendors";
+import LoadingScreen from "@/components/shared/LoadingScreen";
+import { MockPackage, MockReview, MockVendor } from "@/lib/mock/types";
+import { getVendorDetail } from "@/services/vendor.service";
 
 export default function VendorDetailsScreen({ vendorId }: { vendorId: string }) {
-  const vendor = getVendorById(vendorId);
-  const packages = getPackagesForVendor(vendorId);
-  const reviews = getReviewsForVendor(vendorId);
+  // Real WorkPostController.GetById is public and live — queried for real,
+  // falling back to the fixture lookup if unreachable or the id doesn't
+  // resolve there (see getVendorDetail in vendor.service.ts).
+  const [vendor, setVendor] = useState<MockVendor | null | undefined>(undefined);
+  const [packages, setPackages] = useState<MockPackage[]>([]);
+  const [reviews, setReviews] = useState<MockReview[]>([]);
   const [selectedDate, setSelectedDate] = useState(0);
-  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(packages[0]?.id ?? null);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
 
-  if (!vendor) {
+  useEffect(() => {
+    let cancelled = false;
+    getVendorDetail(vendorId).then((result) => {
+      if (cancelled) return;
+      setVendor(result?.vendor ?? null);
+      setPackages(result?.packages ?? []);
+      setReviews(result?.reviews ?? []);
+      setSelectedPackageId(result?.packages[0]?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [vendorId]);
+
+  if (vendor === undefined) {
+    return <LoadingScreen fullScreen={false} />;
+  }
+
+  if (vendor === null) {
     notFound();
   }
 
@@ -31,8 +54,10 @@ export default function VendorDetailsScreen({ vendorId }: { vendorId: string }) 
       <VendorHeaderInfo vendor={vendor} />
       <VendorDescription description={vendor.description} />
       <NextOpenDates selected={selectedDate} onSelect={setSelectedDate} />
-      <PackageTiers packages={packages} selectedId={selectedPackageId} onSelect={setSelectedPackageId} />
-      <VendorReviews reviews={reviews} total={vendor.reviewCount} />
+      {packages.length > 0 ? (
+        <PackageTiers packages={packages} selectedId={selectedPackageId} onSelect={setSelectedPackageId} />
+      ) : null}
+      {reviews.length > 0 ? <VendorReviews reviews={reviews} total={vendor.reviewCount} /> : null}
       <StickyBookBar
         vendorId={vendor.id}
         packageId={selectedPackageId}

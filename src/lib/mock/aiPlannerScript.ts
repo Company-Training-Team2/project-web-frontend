@@ -41,7 +41,7 @@ export const MOCK_PLANNER_CONVERSATION: PlannerMessage[] = [
       location: "Settignano, Florence",
       estimate: "Est. £18,000",
       rating: 4.9,
-      image: "/vendor-placeholder-4.jpg",
+      image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
     },
   },
   {

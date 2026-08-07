@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 import MarketplaceHeader from "@/components/shared/MarketplaceHeader";
 import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
@@ -12,7 +13,8 @@ import CategoryPillFilter from "./CategoryPillFilter";
 import VendorGrid from "./VendorGrid";
 import Pagination from "./Pagination";
 import NoResultsFound from "./NoResultsFound";
-import { MOCK_VENDORS } from "@/lib/mock/vendors";
+import { MockVendor } from "@/lib/mock/types";
+import { searchVendors } from "@/services/vendor.service";
 
 function SearchResultsScreenInner() {
   // MarketplaceHeader's nav links (Venues/Catering/Floral/Planning) send
@@ -28,14 +30,28 @@ function SearchResultsScreenInner() {
     guestCount: 150,
   });
   const [page, setPage] = useState(1);
+  const [vendors, setVendors] = useState<MockVendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filtered = useMemo(() => {
-    return MOCK_VENDORS.filter((vendor) => {
-      const matchesCategory = !filters.category || vendor.categoryId === filters.category;
-      const matchesRating = vendor.rating >= filters.minRating;
-      return matchesCategory && matchesRating;
-    });
-  }, [filters]);
+  // Real WorkPostController.Search is public and live — queried for real,
+  // with a fixture fallback baked into searchVendors() if it's unreachable.
+  useEffect(() => {
+    let cancelled = false;
+    // A real network call kicking off on filter change, not derived state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoading(true);
+    searchVendors({ category: filters.category ?? undefined, minRating: filters.minRating || undefined }).then(
+      (results) => {
+        if (!cancelled) {
+          setVendors(results);
+          setIsLoading(false);
+        }
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [filters.category, filters.minRating]);
 
   return (
     <div className="min-h-screen bg-[#faf6f0] pb-20 lg:pb-0">
@@ -52,12 +68,17 @@ function SearchResultsScreenInner() {
         <FiltersSidebar filters={filters} onChange={setFilters} />
 
         <main className="min-w-0 flex-1">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-24 text-[#a79a90]">
+              <Loader2 className="size-5 animate-spin" />
+              Loading vendors…
+            </div>
+          ) : vendors.length === 0 ? (
             <NoResultsFound />
           ) : (
             <>
-              <SearchResultsHeader count={filtered.length} />
-              <VendorGrid vendors={filtered} />
+              <SearchResultsHeader count={vendors.length} />
+              <VendorGrid vendors={vendors} />
               <Pagination page={page} totalPages={12} onChange={setPage} />
             </>
           )}

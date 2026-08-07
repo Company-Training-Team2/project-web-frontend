@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,13 +12,14 @@ import {
   Bell,
   Lock,
   FileText,
-  HelpCircle,
   Info,
   LogOut,
   ChevronRight,
   type LucideIcon,
 } from "lucide-react";
-import Sidebar from "@/components/layout/Sidebar";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { userService, UserProfile } from "@/services/user.service";
 
 interface SettingsItem {
   icon: LucideIcon;
@@ -32,28 +33,29 @@ interface SettingsSection {
   items: SettingsItem[];
 }
 
+// "Payment Methods" and "Privacy Policy"/"Terms & Conditions" used to point
+// at /profile/payment-methods and /legal/privacy /legal/terms — none of
+// which exist; the real routes are /payment-methods, /privacy, /terms (see
+// README route table). "Help Center" had nowhere real to go, so it's dropped.
 const sections: SettingsSection[] = [
   {
     label: "Account",
     items: [
       { icon: User, title: "Profile Information", href: "/profile/edit" },
       { icon: Shield, title: "Security", href: "/settings/security" },
-      { icon: CreditCard, title: "Payment Methods", href: "/profile/payment-methods" },
+      { icon: CreditCard, title: "Payment Methods", href: "/payment-methods" },
     ],
   },
   {
     label: "Legal",
     items: [
-      { icon: Lock, title: "Privacy Policy", href: "/legal/privacy" },
-      { icon: FileText, title: "Terms & Conditions", href: "/legal/terms" },
+      { icon: Lock, title: "Privacy Policy", href: "/privacy" },
+      { icon: FileText, title: "Terms & Conditions", href: "/terms" },
     ],
   },
   {
     label: "Support",
-    items: [
-      { icon: HelpCircle, title: "Help Center", href: "/help" },
-      { icon: Info, title: "About EventHub", trailing: "v2.4.0" },
-    ],
+    items: [{ icon: Info, title: "About EventHub", trailing: "v2.4.0" }],
   },
 ];
 
@@ -99,14 +101,23 @@ function Toggle({ checked, onChange }: ToggleProps) {
 }
 
 export default function SettingsPage() {
+  useRequireAuth();
+  const { logout } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [language] = useState("English (US)");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    userService.getMe().then(setProfile).catch(() => setProfile(null));
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
-      <Sidebar />
-
-      <main className="flex-1 overflow-x-hidden">
+    // Was rendering <Sidebar/> — the admin executive-portal nav, wrong for
+    // a customer settings page (see profileSettings.tsx for the full note).
+    // This screen already has its own back-to-/profile top bar below, so no
+    // replacement nav is needed once Sidebar is gone.
+    <div className="min-h-screen bg-[#EDE0D2] overflow-x-hidden">
+      <main className="overflow-x-hidden">
         {/* Top bar */}
         <div className="flex items-center gap-3 border-b border-[#DCCFC0] bg-[#FBF3EA] px-6 py-5">
           <Link
@@ -126,14 +137,14 @@ export default function SettingsPage() {
             {/* Left: identity card */}
             <div className="h-fit rounded-[20px] border border-[#DCCFC0] bg-[#F6ECE0] p-6 text-center">
               <img
-                src="https://i.pravatar.cc/160?img=45"
-                alt="Julianne V."
+                src={profile?.avatarUrl || "https://i.pravatar.cc/160?img=45"}
+                alt={profile?.fullName ?? "Profile photo"}
                 className="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover"
               />
               <h2 className="text-lg font-semibold text-[#2B2622]">
-                Julianne V.
+                {profile?.fullName || "—"}
               </h2>
-              <p className="mt-0.5 text-sm text-[#8B7E72]">Premium Member</p>
+              <p className="mt-0.5 text-sm text-[#8B7E72]">{profile?.email ?? "Premium Member"}</p>
 
               <Link
                 href="/profile"
@@ -165,13 +176,16 @@ export default function SettingsPage() {
                     </span>
                     <Toggle checked={darkMode} onChange={() => setDarkMode((v) => !v)} />
                   </div>
-                  <button className="flex w-full items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4 text-left transition-colors hover:bg-[#EDE0D2]">
+                  <Link
+                    href="/notifications"
+                    className="flex w-full items-center gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F5EDE0] px-5 py-4 text-left transition-colors hover:bg-[#EDE0D2]"
+                  >
                     <Bell className="h-[18px] w-[18px] text-[#8B7E72]" />
                     <span className="flex-1 text-sm text-[#2B2622]">
                       Notifications
                     </span>
                     <ChevronRight className="h-4 w-4 text-[#8B7E72]" />
-                  </button>
+                  </Link>
                 </div>
               </div>
 
@@ -213,7 +227,10 @@ export default function SettingsPage() {
                 </div>
               ))}
 
-              <button className="flex items-center justify-center gap-2 rounded-[16px] border border-[#A3391C]/40 py-4 text-sm font-medium text-[#A3391C] transition-colors hover:bg-[#A3391C]/5">
+              <button
+                onClick={() => logout()}
+                className="flex items-center justify-center gap-2 rounded-[16px] border border-[#A3391C]/40 py-4 text-sm font-medium text-[#A3391C] transition-colors hover:bg-[#A3391C]/5"
+              >
                 <LogOut className="h-[18px] w-[18px]" />
                 Logout
               </button>

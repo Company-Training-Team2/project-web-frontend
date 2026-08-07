@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Camera, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ import AuthCard from "./AuthCard";
 import FormField from "./FormField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getUserErrorMessage, userService } from "@/services/user.service";
 
 const schema = z.object({
   fullName: z.string().min(2, "Enter your full name"),
@@ -23,7 +25,15 @@ type FormData = z.infer<typeof schema>;
 const eventTypes = ["Wedding", "Engagement", "Graduation", "Birthday", "Corporate"];
 const budgetLevels = ["Economy", "Standard", "Premium", "Luxury"];
 
-export default function CompleteProfileForm() {
+// Event type / budget preference have no backend field yet (UpdateUserDto
+// only has fullName/phoneNumber/city/avatarUrl/email) — kept as local UI
+// state so the picker still works, just not persisted until the backend
+// grows those fields.
+function CompleteProfileFormInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? "/";
+
   const [isLoading, setIsLoading] = useState(false);
   const [selectedType, setSelectedType] = useState("Engagement");
   const [budgetIndex, setBudgetIndex] = useState(2);
@@ -31,16 +41,39 @@ export default function CompleteProfileForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  // Prefill with whatever's already on file (e.g. a customer revisiting this
+  // screen, or a name captured at registration) instead of blank fields.
+  useEffect(() => {
+    userService
+      .getMe()
+      .then((profile) => {
+        reset({
+          fullName: profile.fullName ?? "",
+          phone: profile.phoneNumber ?? "",
+          city: profile.city ?? "",
+        });
+      })
+      .catch(() => {
+        // Not signed in yet, or backend unreachable — leave the form blank.
+      });
+  }, [reset]);
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      // TODO: wire to profile completion service
+      await userService.updateMe({
+        fullName: data.fullName,
+        phoneNumber: data.phone,
+        city: data.city,
+      });
       toast.success("Profile updated");
-    } catch {
-      toast.error("Couldn't save your profile. Try again.");
+      router.push(redirectTo.startsWith("/") ? redirectTo : "/");
+    } catch (error: unknown) {
+      toast.error(getUserErrorMessage(error, "Couldn't save your profile. Try again."));
     } finally {
       setIsLoading(false);
     }
@@ -229,5 +262,15 @@ export default function CompleteProfileForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary (same pattern as
+// ReserveScreen / LoginForm).
+export default function CompleteProfileForm() {
+  return (
+    <Suspense>
+      <CompleteProfileFormInner />
+    </Suspense>
   );
 }

@@ -10,7 +10,10 @@ export default function VendorHeroCarousel({ vendor }: { vendor: MockVendor }) {
   const category = getCategoryById(vendor.categoryId);
 
   return (
-    <div className="relative h-[260px] w-full bg-[#e9dfd1] lg:h-[360px] lg:rounded-b-[20px]">
+    <div className="relative h-[260px] w-full overflow-hidden bg-[#e9dfd1] lg:h-[360px] lg:rounded-b-[20px]">
+      {vendor.images[0] ? (
+        <img src={vendor.images[0]} alt={vendor.businessName} className="absolute inset-0 h-full w-full object-cover" />
+      ) : null}
       <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5">
         <button
           onClick={() => router.back()}

@@ -1,33 +1,30 @@
-import { Users, Store, CalendarCheck, Wallet } from "lucide-react";
+"use client";
 
-const stats = [
-  {
-    icon: Users,
-    label: "Total Users",
-    value: "42.8k",
-    growth: "+8%",
-  },
-  {
-    icon: Store,
-    label: "Active Vendors",
-    value: "2.4k",
-    growth: "+4%",
-  },
-  {
-    icon: CalendarCheck,
-    label: "Bookings Today",
-    value: "156",
-    growth: "+12%",
-  },
-  {
-    icon: Wallet,
-    label: "Revenue Today",
-    value: "EGP 485,200",
-    growth: "+6%",
-  },
-];
+import { useEffect, useState } from "react";
+import { Users, Store, CalendarCheck, Wallet } from "lucide-react";
+import { adminService, AdminDashboardDto } from "@/services/admin.service";
 
 export default function StatsCards() {
+  const [dashboard, setDashboard] = useState<AdminDashboardDto | null>(null);
+
+  useEffect(() => {
+    adminService.getDashboard().then(setDashboard).catch(() => setDashboard(null));
+  }, []);
+
+  // GET /api/admin/dashboard doesn't break stats down by "today" — only
+  // running totals and "this month" — so these are labeled for what the
+  // backend actually computes rather than faking a daily figure.
+  const stats = [
+    { icon: Users, label: "Total Users", value: dashboard ? dashboard.totalUsers.toLocaleString() : "—" },
+    { icon: Store, label: "Total Vendors", value: dashboard ? dashboard.totalVendors.toLocaleString() : "—" },
+    { icon: CalendarCheck, label: "Bookings This Month", value: dashboard ? dashboard.bookingsThisMonth.toLocaleString() : "—" },
+    {
+      icon: Wallet,
+      label: "Revenue This Month",
+      value: dashboard ? `EGP ${dashboard.revenueThisMonth.toLocaleString()}` : "—",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mt-6">
       {stats.map((stat) => (
@@ -39,9 +36,6 @@ export default function StatsCards() {
             <div className="w-9 h-9 rounded-xl bg-[#EDE0D2] flex items-center justify-center text-[#A3391C]">
               <stat.icon size={18} />
             </div>
-            <span className="text-green-700 text-xs font-medium">
-              {stat.growth}
-            </span>
           </div>
 
           <p className="text-xs md:text-sm text-[#8B716A] mt-3">

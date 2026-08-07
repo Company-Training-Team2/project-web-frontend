@@ -7,7 +7,10 @@ export default function VendorMiniCard({ vendor }: { vendor: MockVendor }) {
 
   return (
     <div className="rounded-[16px] border border-[#e5ded2] bg-white p-4">
-      <div className="relative h-28 w-full rounded-[10px] bg-[#e9dfd1]">
+      <div className="relative h-28 w-full overflow-hidden rounded-[10px] bg-[#e9dfd1]">
+        {vendor.images[0] ? (
+          <img src={vendor.images[0]} alt={vendor.businessName} className="absolute inset-0 h-full w-full object-cover" />
+        ) : null}
         <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-[#252323]">
           <Star className="size-3 fill-[#c59c42] text-[#c59c42]" />
           {vendor.rating.toFixed(1)}

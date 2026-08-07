@@ -5,6 +5,7 @@ import StatusPill from "@/components/shared/StatusPill";
 import { getCategoryById } from "@/lib/mock/categories";
 import { getVendorById } from "@/lib/mock/vendors";
 import { MockBooking } from "@/lib/mock/types";
+import { parseDateOnly } from "@/lib/date";
 
 const STATUS_STYLE: Record<MockBooking["status"], { label: string; variant: "success" | "warning" | "neutral" }> = {
   Confirmed: { label: "Confirmed", variant: "success" },
@@ -20,7 +21,7 @@ export default function BookingCard({ booking }: { booking: MockBooking }) {
   const category = getCategoryById(vendor.categoryId);
   const status = STATUS_STYLE[booking.status];
 
-  const dateLabel = new Date(booking.bookingDate).toLocaleDateString("en-US", {
+  const dateLabel = parseDateOnly(booking.bookingDate).toLocaleDateString("en-US", {
     weekday: "long",
     month: "short",
     day: "numeric",
@@ -29,7 +30,10 @@ export default function BookingCard({ booking }: { booking: MockBooking }) {
 
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#e5ded2] bg-white">
-      <div className="relative h-36 w-full bg-[#e9dfd1]">
+      <div className="relative h-36 w-full overflow-hidden bg-[#e9dfd1]">
+        {vendor.images[0] ? (
+          <img src={vendor.images[0]} alt={vendor.businessName} className="absolute inset-0 h-full w-full object-cover" />
+        ) : null}
         <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[12px] font-bold text-[#252323]">
           <Star className="size-3 fill-[#c59c42] text-[#c59c42]" />
           {vendor.rating.toFixed(1)}

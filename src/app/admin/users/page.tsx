@@ -11,6 +11,7 @@ import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
 export default function UsersPage() {
   useRequireAdminAuth();
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
@@ -22,7 +23,7 @@ export default function UsersPage() {
 
         <div className="flex flex-col lg:flex-row gap-6 items-start min-w-0">
           <div className="flex-1 w-full min-w-0">
-            <UsersTable onSelect={setSelectedMember} />
+            <UsersTable key={refreshKey} onSelect={setSelectedMember} />
           </div>
 
           {selectedMember && (
@@ -30,6 +31,7 @@ export default function UsersPage() {
               <MemberProfilePanel
                 member={selectedMember}
                 onClose={() => setSelectedMember(null)}
+                onChanged={() => setRefreshKey((k) => k + 1)}
               />
             </div>
           )}

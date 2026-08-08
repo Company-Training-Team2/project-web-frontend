@@ -1,7 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/layout/Sidebar";
-import AnalyticsTopBar from "@/components/admin/analytics/AnalyticsTopBar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import AnalyticsHeader from "@/components/admin/analytics/AnalyticsHeader";
 import RevenueIntelligenceChart from "@/components/admin/analytics/RevenueIntelligenceChart";
 import VendorsAndCategory from "@/components/admin/analytics/VendorsAndCategory";
@@ -18,7 +18,7 @@ export default function AnalyticsPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <AnalyticsTopBar />
+        <AdminTopBar searchPlaceholder="Global Search..." />
         <AnalyticsHeader />
         <RevenueIntelligenceChart />
         <VendorsAndCategory />

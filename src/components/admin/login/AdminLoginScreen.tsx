@@ -35,8 +35,9 @@ type FormData = z.infer<typeof schema>;
  * (AdminLoginRequest.cs is just Email/Password) — it's collected but not
  * sent anywhere, same pattern as VendorRegisterWizard's UI-only fields.
  *
- * TODO: real background photo — this uses a CSS gradient stand-in in the
- * app's palette; ask before fetching/using a real stock photo.
+ * Background: matches docs/figma/Admin/Admin Login.jpeg (an arched lobby
+ * interior) via a stock photo, with the same dark gradient wash over it for
+ * text legibility.
  */
 export default function AdminLoginScreen() {
   const router = useRouter();
@@ -82,7 +83,12 @@ export default function AdminLoginScreen() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#1b2421] px-6 py-12">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,rgba(228,139,88,0.14),transparent_35%),linear-gradient(160deg,rgba(27,36,33,0.97),rgba(27,36,33,0.85)_45%,rgba(175,55,24,0.28))]" />
+      <img
+        src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=80"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,rgba(228,139,88,0.14),transparent_35%),linear-gradient(160deg,rgba(27,36,33,0.9),rgba(27,36,33,0.75)_45%,rgba(175,55,24,0.28))]" />
       <div className="absolute inset-x-0 bottom-0 h-72 bg-[linear-gradient(180deg,transparent,rgba(10,14,13,0.85))]" />
 
       <div className="relative z-10 flex w-full max-w-[500px] flex-col items-center">

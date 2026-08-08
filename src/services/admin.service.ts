@@ -1,12 +1,15 @@
 // Real, callable endpoints (AdminController — api/admin/*). Dashboard and
 // User Management are wired for real below. /admin/vendors (the approval
-// queue) is NOT wired: AdminVendorDto only has Id/UserId/Email/
-// BusinessName/BioDescription/PhoneNumber/City/ApprovalStatus/IsVerified —
-// no portfolio images, compliance documents, or verification-insight
-// fields that screen's UI needs, so it reads src/lib/mock/adminVendors.ts
-// fixtures instead for now (left as-is — out of scope, see plan). Wire it
-// in once the backend grows a richer vendor-review payload.
+// queue) is wired for real too via getPendingVendorsAdapted() — but
+// AdminVendorDto only has Id/UserId/Email/BusinessName/BioDescription/
+// PhoneNumber/City/ApprovalStatus/IsVerified, no portfolio images,
+// compliance documents, or verification-insight fields, so the adapter
+// below fills those with honest empty states ("Pending"/no documents)
+// rather than inventing data, and falls back to
+// src/lib/mock/adminVendors.ts fixtures if the real call fails or returns
+// nothing (backend/DB down, demo mode).
 import apiClient from "@/lib/axios";
+import { ADMIN_PENDING_VENDORS, AdminPendingVendor } from "@/lib/mock/adminVendors";
 
 export interface AdminVendorDto {
   vendorProfileId: number;
@@ -95,5 +98,39 @@ export const adminService = {
 
   async requestVendorChanges(id: number, payload?: VendorDecisionPayload): Promise<void> {
     await apiClient.put(`/admin/vendors/${id}/request-changes`, payload);
+  },
+
+  // Adapter: real AdminVendorDto -> the richer AdminPendingVendor shape the
+  // approval-queue UI already expects (same pattern as vendor.service.ts /
+  // booking.service.ts). `id` stays numeric-string so the page can tell a
+  // real vendor (approve/reject calls the real API) from a mock fixture
+  // (local-only demo action).
+  async getPendingVendorsAdapted(): Promise<AdminPendingVendor[]> {
+    try {
+      const vendors = await this.getPendingVendors();
+      if (vendors.length === 0) return ADMIN_PENDING_VENDORS;
+      return vendors.map(
+        (v): AdminPendingVendor => ({
+          id: String(v.vendorProfileId),
+          businessName: v.businessName,
+          category: "Vendor",
+          location: v.city ?? "—",
+          ownerName: v.email,
+          description: v.bioDescription,
+          idVerified: v.isVerified,
+          yearsInBusiness: 0,
+          images: [],
+          verification: {
+            identityCheck: "Pending",
+            backgroundCheck: "Pending",
+            bankVerification: "Pending",
+            riskLevel: "Medium",
+          },
+          documents: [],
+        })
+      );
+    } catch {
+      return ADMIN_PENDING_VENDORS;
+    }
   },
 };

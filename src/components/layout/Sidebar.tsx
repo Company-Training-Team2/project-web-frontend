@@ -11,7 +11,9 @@ import {
   Settings,
   LifeBuoy,
   LogOut,
+  Plus,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
 const menu = [
@@ -70,6 +72,21 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        {/* Matches docs/figma/Admin/*.jpeg — no real "admin creates an
+            event" concept exists on the backend (Events are scoped to a
+            CustomerProfile, not an admin), so this is a placeholder action
+            rather than a wired feature. */}
+        <div className="px-2 pt-4 md:px-4">
+          <button
+            onClick={() => toast.info("Coming soon.")}
+            title="New Event"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#A3391C] px-2 py-3 text-sm font-medium text-white transition hover:bg-[#8B2E17] md:justify-start md:px-4"
+          >
+            <Plus size={18} className="shrink-0" />
+            <span className="hidden md:inline">New Event</span>
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2 p-2 md:p-4">

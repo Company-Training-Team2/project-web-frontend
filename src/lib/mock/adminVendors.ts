@@ -36,7 +36,11 @@ export const ADMIN_PENDING_VENDORS: AdminPendingVendor[] = [
       "Celestial Florals crafts immersive floral installations for luxury weddings and galas across Western Europe.",
     idVerified: true,
     yearsInBusiness: 6,
-    images: ["/vendor-placeholder-3.jpg", "/vendor-placeholder-5.jpg", "/vendor-placeholder-1.jpg"],
+    images: [
+      "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80",
+    ],
     verification: { identityCheck: "Passed", backgroundCheck: "Passed", bankVerification: "Success", riskLevel: "Low" },
     documents: [
       { name: "Business License", meta: "Validated: 2024-01-12" },
@@ -53,7 +57,10 @@ export const ADMIN_PENDING_VENDORS: AdminPendingVendor[] = [
     description: "End-to-end event planning for corporate galas and destination weddings.",
     idVerified: true,
     yearsInBusiness: 9,
-    images: ["/vendor-placeholder-4.jpg", "/vendor-placeholder-2.jpg"],
+    images: [
+      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+    ],
     verification: { identityCheck: "Passed", backgroundCheck: "Pending", bankVerification: "Pending", riskLevel: "Medium" },
     documents: [
       { name: "Business License", meta: "Validated: 2023-11-02" },
@@ -70,7 +77,7 @@ export const ADMIN_PENDING_VENDORS: AdminPendingVendor[] = [
     description: "Seasonal tasting menus and bespoke catering for intimate luxury gatherings.",
     idVerified: false,
     yearsInBusiness: 4,
-    images: ["/vendor-placeholder-1.jpg"],
+    images: ["https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"],
     verification: { identityCheck: "Pending", backgroundCheck: "Pending", bankVerification: "Pending", riskLevel: "Medium" },
     documents: [
       { name: "Business License", meta: "Awaiting upload" },
@@ -87,7 +94,10 @@ export const ADMIN_PENDING_VENDORS: AdminPendingVendor[] = [
     description: "Lighting, sound, and stage production for large-scale corporate and gala events.",
     idVerified: true,
     yearsInBusiness: 11,
-    images: ["/vendor-placeholder-2.jpg", "/vendor-placeholder-4.jpg"],
+    images: [
+      "https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
+    ],
     verification: { identityCheck: "Passed", backgroundCheck: "Passed", bankVerification: "Success", riskLevel: "Low" },
     documents: [
       { name: "Business License", meta: "Validated: 2022-06-18" },

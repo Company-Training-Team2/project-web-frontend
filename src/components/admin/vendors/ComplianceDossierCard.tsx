@@ -10,6 +10,9 @@ export default function ComplianceDossierCard({ documents }: { documents: { name
         Compliance Dossier
       </h3>
 
+      {documents.length === 0 ? (
+        <p className="mt-3 text-sm text-[#8B716A]">No documents submitted yet.</p>
+      ) : (
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {documents.map((doc, i) => {
           const Icon = ICONS[i % ICONS.length];
@@ -30,6 +33,7 @@ export default function ComplianceDossierCard({ documents }: { documents: { name
           );
         })}
       </div>
+      )}
     </div>
   );
 }

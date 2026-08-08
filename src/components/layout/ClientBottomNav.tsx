@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, ClipboardList, User } from "lucide-react";
+import { Home, Compass, CalendarCheck, Heart, Plus } from "lucide-react";
 
 const items = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/vendor/dashboard" },
-  { icon: Briefcase, label: "Services", href: "/vendor/services" },
-  { icon: ClipboardList, label: "Orders", href: "/vendor/orders" },
-  { icon: User, label: "Account", href: "/vendor/profile" },
+  { icon: Home, label: "Home", href: "/event/dashboard" },
+  { icon: Compass, label: "Browse", href: "/event/vendors" },
+  { icon: CalendarCheck, label: "Bookings", href: "/event/bookings" },
+  { icon: Heart, label: "Favorites", href: "/event/favorites" },
 ];
 
-export default function VendorBottomNav() {
+export default function ClientBottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#F6ECE0] border-t border-[#DCCFC0] flex items-center justify-around py-2">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#F6ECE0] border-t border-[#DCCFC0] flex items-center justify-around py-2 z-40">
       {items.map((item) => {
         const isActive = pathname === item.href;
 

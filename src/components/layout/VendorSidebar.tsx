@@ -9,6 +9,7 @@ import {
   Calendar,
   MessageSquare,
   BarChart3,
+  Star,
   User,
   Settings,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const menu = [
   { icon: Calendar, title: "Calendar", href: "/vendor/calendar" },
   { icon: MessageSquare, title: "Messages", href: "/vendor/messages" },
   { icon: BarChart3, title: "Analytics", href: "/vendor/analytics" },
+  { icon: Star, title: "Reviews", href: "/vendor/reviews" },
 ];
 
 const footerMenu = [

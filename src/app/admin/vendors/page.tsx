@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { WifiOff } from "lucide-react";
 
 import Sidebar from "@/components/layout/Sidebar";
 import AdminTopBar from "@/components/admin/AdminTopBar";
@@ -20,11 +21,13 @@ import { AdminPendingVendor } from "@/lib/mock/adminVendors";
 export default function AdminVendorDirectoryPage() {
   useRequireAdminAuth();
   const [vendors, setVendors] = useState<AdminPendingVendor[] | undefined>(undefined);
+  const [isLive, setIsLive] = useState(true);
   const [selectedId, setSelectedId] = useState("");
 
   useEffect(() => {
-    adminService.getPendingVendorsAdapted().then((list) => {
+    adminService.getPendingVendorsAdapted().then(({ vendors: list, isLive: live }) => {
       setVendors(list);
+      setIsLive(live);
       setSelectedId(list[0]?.id ?? "");
     });
   }, []);
@@ -78,6 +81,16 @@ export default function AdminVendorDirectoryPage() {
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
         <AdminTopBar searchPlaceholder="Search vendors..." />
+
+        {!isLive ? (
+          <div className="mt-6 flex items-center gap-2 rounded-[16px] border border-[#e3aea0] bg-[#fbeee9] px-4 py-3 text-sm text-[#8a3b3b]">
+            <WifiOff size={16} className="shrink-0" />
+            <span>
+              Couldn&apos;t reach the server — showing sample demo vendors below, not the real queue. Approve/Reject
+              here won&apos;t be saved until the connection is back.
+            </span>
+          </div>
+        ) : null}
 
         <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start min-w-0">
           <PendingApprovalsList vendors={vendors} selectedId={selectedId} onSelect={setSelectedId} />

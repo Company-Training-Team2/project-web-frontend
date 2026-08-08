@@ -32,7 +32,9 @@ export default function VendorApprovalHeader({ vendor }: { vendor: AdminPendingV
               ID Verified
             </span>
           ) : null}
-          <span className="text-[#8B716A]">{vendor.yearsInBusiness} Years in Business</span>
+          {vendor.yearsInBusiness > 0 ? (
+            <span className="text-[#8B716A]">{vendor.yearsInBusiness} Years in Business</span>
+          ) : null}
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { platformService, PlatformStats } from "@/services/platform.service";
 import { searchVendors } from "@/services/vendor.service";
 import { homeService, HomeDashboard } from "@/services/home.service";
+import SampleDataNotice from "@/components/shared/SampleDataNotice";
 import { MockVendor } from "@/lib/mock/types";
 
 // --- بيانات وهمية للتصميم (تم تحديث روابط الصور لضمان ظهورها) ---
@@ -276,6 +277,7 @@ export default function LandingPage() {
             <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#A3391C]">Handpicked Talent</span>
             <h2 className="mt-2 font-serif text-4xl font-bold text-[#1A1A1A] md:text-5xl">Featured vendors</h2>
             <p className="mt-3 max-w-2xl text-sm text-[#5A524A]">Every vendor is vetted through a rigorous 40-point quality curation process before joining EventHub, ensuring only the finest artisans serve your vision.</p>
+            {vendors.length > 0 && !/^\d+$/.test(vendors[0].id) ? <SampleDataNotice className="mt-3" /> : null}
           </div>
           
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">

@@ -11,6 +11,7 @@ import PackageTiers from "./PackageTiers";
 import VendorReviews from "./VendorReviews";
 import StickyBookBar from "./StickyBookBar";
 import LoadingScreen from "@/components/shared/LoadingScreen";
+import SampleDataNotice from "@/components/shared/SampleDataNotice";
 import { MockPackage, MockReview, MockVendor } from "@/lib/mock/types";
 import { getVendorDetail } from "@/services/vendor.service";
 
@@ -51,6 +52,7 @@ export default function VendorDetailsScreen({ vendorId }: { vendorId: string }) 
   return (
     <div className="mx-auto min-h-screen w-full max-w-2xl bg-[#faf6f0] pb-4 lg:max-w-4xl">
       <VendorHeroCarousel vendor={vendor} />
+      {!/^\d+$/.test(vendor.id) ? <SampleDataNotice className="px-4 pt-3 sm:px-6" /> : null}
       <VendorHeaderInfo vendor={vendor} />
       <VendorDescription description={vendor.description} />
       <NextOpenDates selected={selectedDate} onSelect={setSelectedDate} />

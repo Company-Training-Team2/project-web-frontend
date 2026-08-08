@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { WifiOff } from "lucide-react";
 
 import MyBookingsHeader from "./MyBookingsHeader";
 import BookingFilterTabs, { BookingTab } from "./BookingFilterTabs";
@@ -23,9 +24,13 @@ export default function MyBookingsScreen() {
   useRequireAuth();
   const [tab, setTab] = useState<BookingTab>("Upcoming");
   const [allBookings, setAllBookings] = useState<MockBooking[] | undefined>(undefined);
+  const [isLive, setIsLive] = useState(true);
 
   useEffect(() => {
-    bookingService.getMyBookings().then(setAllBookings);
+    bookingService.getMyBookings().then(({ bookings, isLive: live }) => {
+      setAllBookings(bookings);
+      setIsLive(live);
+    });
   }, []);
 
   const bookings = useMemo(
@@ -44,6 +49,13 @@ export default function MyBookingsScreen() {
 
         <div className="mt-4 space-y-4">
           <BookingFilterTabs active={tab} onChange={setTab} />
+
+          {!isLive ? (
+            <div className="mx-4 flex items-center gap-2 rounded-[12px] border border-[#e3aea0] bg-[#fbeee9] px-4 py-3 text-[13px] text-[#8a3b3b] sm:mx-5 lg:mx-10">
+              <WifiOff size={15} className="shrink-0" />
+              Couldn&apos;t reach the server — showing sample bookings below, not your real ones.
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-1 gap-4 px-4 pb-6 sm:grid-cols-2 sm:px-5 lg:grid-cols-3 lg:px-10 xl:grid-cols-4">
             {bookings.length === 0 ? (

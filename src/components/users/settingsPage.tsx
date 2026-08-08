@@ -17,6 +17,7 @@ import {
   ChevronRight,
   type LucideIcon,
 } from "lucide-react";
+import { WifiOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { userService, UserProfile } from "@/services/user.service";
@@ -106,9 +107,13 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [language] = useState("English (US)");
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileError, setProfileError] = useState(false);
 
   useEffect(() => {
-    userService.getMe().then(setProfile).catch(() => setProfile(null));
+    userService
+      .getMe()
+      .then(setProfile)
+      .catch(() => setProfileError(true));
   }, []);
 
   return (
@@ -144,7 +149,14 @@ export default function SettingsPage() {
               <h2 className="text-lg font-semibold text-[#2B2622]">
                 {profile?.fullName || "—"}
               </h2>
-              <p className="mt-0.5 text-sm text-[#8B7E72]">{profile?.email ?? "Premium Member"}</p>
+              <p className="mt-0.5 text-sm text-[#8B7E72]">{profile?.email ?? ""}</p>
+
+              {profileError ? (
+                <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-[#A3391C]">
+                  <WifiOff size={12} className="shrink-0" />
+                  Couldn&apos;t load your profile.
+                </p>
+              ) : null}
 
               <Link
                 href="/profile"

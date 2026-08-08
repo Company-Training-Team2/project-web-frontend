@@ -12,6 +12,7 @@ import {
   Crown,
 } from "lucide-react";
 import BottomNav from "@/components/shared/BottomNav";
+import ConnectionError from "@/components/shared/ConnectionError";
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { userService, UserProfile } from "@/services/user.service";
@@ -61,14 +62,39 @@ export default function ProfileSettings() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookingCount, setBookingCount] = useState<number | null>(null);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
 
-  useEffect(() => {
-    userService.getMe().then(setProfile).catch(() => setProfile(null));
+  const load = () => {
+    setStatus("loading");
+    userService
+      .getMe()
+      .then((p) => {
+        setProfile(p);
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
     homeService
       .getDashboard()
       .then((d) => setBookingCount(d.pendingBookingsCount + d.confirmedBookingsCount))
       .catch(() => setBookingCount(null));
+  };
+
+  useEffect(() => {
+    // One-time fetch on mount, not state derived from props/state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
   }, []);
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-[#F6F1EB] overflow-x-hidden pb-20 lg:pb-6">
+        <main className="p-3 md:p-6">
+          <ConnectionError message="Couldn't load your profile. Check your connection and try again." onRetry={load} />
+        </main>
+        <BottomNav active="profile" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F1EB] overflow-x-hidden pb-20 lg:pb-6">

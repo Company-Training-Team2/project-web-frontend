@@ -84,7 +84,7 @@ export default function AdminLoginScreen() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#1b2421] px-6 py-12">
       <img
-        src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=80"
+        src="https://images.unsplash.com/photo-1586338468230-7c6be2619af6?auto=format&fit=crop&w=1600&q=80"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
@@ -146,21 +146,23 @@ export default function AdminLoginScreen() {
               {errors.password ? <p className="mt-1 text-[11px] text-[#af3718]">{errors.password.message}</p> : null}
             </div>
 
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#6d5d54]">
-                Two-Factor Authentication
-                {mfaRequired ? <span className="ml-1.5 font-normal normal-case text-[#af3718]">— required for this account</span> : null}
-              </p>
-              <div className="mt-2">
-                <Controller
-                  control={control}
-                  name="code"
-                  render={({ field }) => (
-                    <OTPInput value={field.value ?? ""} onChange={field.onChange} disabled={isLoading} />
-                  )}
-                />
+            {mfaRequired ? (
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#6d5d54]">
+                  Two-Factor Authentication
+                  <span className="ml-1.5 font-normal normal-case text-[#af3718]">— required for this account</span>
+                </p>
+                <div className="mt-2">
+                  <Controller
+                    control={control}
+                    name="code"
+                    render={({ field }) => (
+                      <OTPInput value={field.value ?? ""} onChange={field.onChange} disabled={isLoading} />
+                    )}
+                  />
+                </div>
               </div>
-            </div>
+            ) : null}
 
             <label className="flex items-center gap-2 text-[13px] text-[#6d5d54]">
               <input type="checkbox" {...register("remember")} className="size-4 accent-[#af3718]" />

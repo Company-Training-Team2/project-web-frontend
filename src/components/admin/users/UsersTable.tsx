@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { adminService, AdminUserDto } from "@/services/admin.service";
+import AdminConnectionError from "@/components/admin/AdminConnectionError";
 
 // Real shape from GET /api/admin/users — no per-user "membership tier" or
 // booking count exists on the backend (AdminUserDto has none), so those
@@ -29,13 +30,15 @@ export default function UsersTable({
 }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const load = () => {
     setIsLoading(true);
+    setLoadError(false);
     adminService
       .getUsers()
       .then(setMembers)
-      .catch(() => setMembers([]))
+      .catch(() => setLoadError(true))
       .finally(() => setIsLoading(false));
   };
 
@@ -65,6 +68,8 @@ export default function UsersTable({
     <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] mt-6 p-4 md:p-6">
       {isLoading ? (
         <p className="py-10 text-center text-sm text-[#8B716A]">Loading users…</p>
+      ) : loadError ? (
+        <AdminConnectionError label="the user directory" />
       ) : members.length === 0 ? (
         <p className="py-10 text-center text-sm text-[#8B716A]">No users found.</p>
       ) : (

@@ -104,12 +104,13 @@ export const adminService = {
   // approval-queue UI already expects (same pattern as vendor.service.ts /
   // booking.service.ts). `id` stays numeric-string so the page can tell a
   // real vendor (approve/reject calls the real API) from a mock fixture
-  // (local-only demo action).
-  async getPendingVendorsAdapted(): Promise<AdminPendingVendor[]> {
+  // (local-only demo action). Only falls back to fixtures when the real
+  // call actually fails — a genuinely empty real queue (`[]`) is returned
+  // as-is rather than silently swapped for mock data that would look real.
+  async getPendingVendorsAdapted(): Promise<{ vendors: AdminPendingVendor[]; isLive: boolean }> {
     try {
       const vendors = await this.getPendingVendors();
-      if (vendors.length === 0) return ADMIN_PENDING_VENDORS;
-      return vendors.map(
+      return { isLive: true, vendors: vendors.map(
         (v): AdminPendingVendor => ({
           id: String(v.vendorProfileId),
           businessName: v.businessName,
@@ -128,9 +129,9 @@ export const adminService = {
           },
           documents: [],
         })
-      );
+      ) };
     } catch {
-      return ADMIN_PENDING_VENDORS;
+      return { isLive: false, vendors: ADMIN_PENDING_VENDORS };
     }
   },
 };

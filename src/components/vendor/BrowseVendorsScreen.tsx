@@ -12,6 +12,7 @@ import BottomNav from "@/components/shared/BottomNav";
 import SparkleFab from "@/components/shared/SparkleFab";
 import { MockVendor } from "@/lib/mock/types";
 import { searchVendors } from "@/services/vendor.service";
+import SampleDataNotice from "@/components/shared/SampleDataNotice";
 
 export default function BrowseVendorsScreen() {
   const [search, setSearch] = useState("");
@@ -50,6 +51,7 @@ export default function BrowseVendorsScreen() {
           <VendorSearchBar value={search} onChange={setSearch} />
           <CategoryPillFilter active={category} onChange={setCategory} />
           <VendorResultsRow count={vendors.length} city="Alexandria" />
+          {!isLoading && vendors.length > 0 && !/^\d+$/.test(vendors[0].id) ? <SampleDataNotice /> : null}
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-16 text-[#a79a90]">
               <Loader2 className="size-5 animate-spin" />

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { adminService, AdminDashboardDto } from "@/services/admin.service";
+import AdminConnectionError from "@/components/admin/AdminConnectionError";
 
 // GET /api/admin/dashboard has no historical/trend data (no prior-period
 // comparison, no refund tracking) — the original mockup's %-change badges
@@ -10,19 +11,37 @@ import { adminService, AdminDashboardDto } from "@/services/admin.service";
 // current totals instead of inventing trends.
 export default function StatsCards() {
   const [dashboard, setDashboard] = useState<AdminDashboardDto | null>(null);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
 
   useEffect(() => {
-    adminService.getDashboard().then(setDashboard).catch(() => setDashboard(null));
+    adminService
+      .getDashboard()
+      .then((d) => {
+        setDashboard(d);
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
   }, []);
+
+  if (status === "error") {
+    return (
+      <div className="mt-6">
+        <AdminConnectionError label="report totals" />
+      </div>
+    );
+  }
 
   const avgBooking =
     dashboard && dashboard.totalBookings > 0 ? dashboard.totalRevenue / dashboard.totalBookings : null;
 
   const cards = [
-    { title: "Total Revenue", value: dashboard ? `EGP ${dashboard.totalRevenue.toLocaleString()}` : "—" },
-    { title: "Avg. Booking Value", value: avgBooking !== null ? `EGP ${avgBooking.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—" },
-    { title: "Active Vendors", value: dashboard ? dashboard.totalVendors.toLocaleString() : "—" },
-    { title: "Total Bookings", value: dashboard ? dashboard.totalBookings.toLocaleString() : "—" },
+    { title: "Total Revenue", value: dashboard ? `EGP ${dashboard.totalRevenue.toLocaleString()}` : undefined },
+    {
+      title: "Avg. Booking Value",
+      value: avgBooking !== null ? `EGP ${avgBooking.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : undefined,
+    },
+    { title: "Active Vendors", value: dashboard?.totalVendors.toLocaleString() },
+    { title: "Total Bookings", value: dashboard?.totalBookings.toLocaleString() },
   ];
 
   return (
@@ -44,7 +63,11 @@ export default function StatsCards() {
           </div>
 
           <h2 className="text-3xl font-bold mt-3 text-[#2B2622]">
-            {card.value}
+            {status === "loading" ? (
+              <span className="inline-block h-8 w-20 animate-pulse rounded bg-[#DCCFC0]" />
+            ) : (
+              card.value
+            )}
           </h2>
         </div>
       ))}

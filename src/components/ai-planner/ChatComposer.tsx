@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { Plus, Send } from "lucide-react";
 
-// UI-only demo composer — appends the next canned reply; no LLM call.
-export default function ChatComposer({ onSend }: { onSend: (text: string) => void }) {
+export default function ChatComposer({
+  onSend,
+  disabled = false,
+}: {
+  onSend: (text: string) => void;
+  disabled?: boolean;
+}) {
   const [value, setValue] = useState("");
 
   const handleSend = () => {
-    if (!value.trim()) return;
+    if (!value.trim() || disabled) return;
     onSend(value.trim());
     setValue("");
   };
@@ -23,12 +28,14 @@ export default function ChatComposer({ onSend }: { onSend: (text: string) => voi
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}
         placeholder="Ask your planner..."
-        className="h-11 flex-1 rounded-full border border-[#e5ded2] bg-[#f6f1ea] px-4 text-[14px] placeholder:text-[#a79a90] focus:outline-none"
+        disabled={disabled}
+        className="h-11 flex-1 rounded-full border border-[#e5ded2] bg-[#f6f1ea] px-4 text-[14px] placeholder:text-[#a79a90] focus:outline-none disabled:opacity-60"
       />
       <button
         onClick={handleSend}
+        disabled={disabled}
         aria-label="Send"
-        className="grid size-11 shrink-0 place-items-center rounded-full bg-[#af3718] text-white"
+        className="grid size-11 shrink-0 place-items-center rounded-full bg-[#af3718] text-white disabled:opacity-60"
       >
         <Send className="size-4" />
       </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { adminService, AdminVendorDto } from "@/services/admin.service";
+import AdminConnectionError from "@/components/admin/AdminConnectionError";
 
 function initials(name: string) {
   return name
@@ -15,12 +16,16 @@ function initials(name: string) {
 
 export default function RecentVendorApprovals() {
   const [approvals, setApprovals] = useState<AdminVendorDto[]>([]);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
 
   useEffect(() => {
     adminService
       .getPendingVendors()
-      .then((vendors) => setApprovals(vendors.slice(0, 5)))
-      .catch(() => setApprovals([]));
+      .then((vendors) => {
+        setApprovals(vendors.slice(0, 5));
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
   }, []);
 
   return (
@@ -34,7 +39,11 @@ export default function RecentVendorApprovals() {
         </Link>
       </div>
 
-      {approvals.length === 0 ? (
+      {status === "error" ? (
+        <AdminConnectionError label="vendor approvals" />
+      ) : status === "loading" ? (
+        <p className="py-6 text-center text-sm text-[#8B7E72]">Loading…</p>
+      ) : approvals.length === 0 ? (
         <p className="py-6 text-center text-sm text-[#8B7E72]">No pending vendor approvals.</p>
       ) : (
         <>

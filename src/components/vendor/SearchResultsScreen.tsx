@@ -15,6 +15,7 @@ import Pagination from "./Pagination";
 import NoResultsFound from "./NoResultsFound";
 import { MockVendor } from "@/lib/mock/types";
 import { searchVendors } from "@/services/vendor.service";
+import SampleDataNotice from "@/components/shared/SampleDataNotice";
 
 function SearchResultsScreenInner() {
   // MarketplaceHeader's nav links (Venues/Catering/Floral/Planning) send
@@ -78,6 +79,7 @@ function SearchResultsScreenInner() {
           ) : (
             <>
               <SearchResultsHeader count={vendors.length} />
+              {!/^\d+$/.test(vendors[0].id) ? <SampleDataNotice className="px-4 pb-2 sm:px-6 lg:px-8" /> : null}
               <VendorGrid vendors={vendors} />
               <Pagination page={page} totalPages={12} onChange={setPage} />
             </>

@@ -12,6 +12,8 @@ import {
   LifeBuoy,
   LogOut,
   Plus,
+  UserCircle,
+  Briefcase,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +25,16 @@ const menu = [
   { icon: BarChart3, title: "Analytics", href: "/admin/analytics" },
   { icon: FileText, title: "Reports", href: "/admin/reports" },
   { icon: Settings, title: "Settings", href: "/admin/settings" },
+];
+
+// Quick jump-off points so an admin can browse the actual customer/vendor
+// experience without logging out — these pages carry no role gate, but any
+// role-scoped API call inside them (e.g. /api/vendor/*) still requires a
+// Vendor/Customer token on the backend, so treat this as a visual preview,
+// not a real "log in as" switch.
+const previewMenu = [
+  { icon: UserCircle, title: "Customer View", href: "/dashboard" },
+  { icon: Briefcase, title: "Vendor View", href: "/vendor/dashboard" },
 ];
 
 export default function Sidebar() {
@@ -72,6 +84,34 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        <div className="mt-6 px-2 md:px-4">
+          <p className="hidden md:block px-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+            Preview
+          </p>
+          <nav className="space-y-2">
+            {previewMenu.map((item) => {
+              const isActive = pathname?.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  title={item.title}
+                  className={`flex items-center justify-center md:justify-start gap-3 w-full px-2 md:px-4 py-3 rounded-xl transition
+                  ${
+                    isActive
+                      ? "bg-[#2B3632] text-[#E48B58]"
+                      : "hover:bg-[#2B3632] text-white/70"
+                  }`}
+                >
+                  <item.icon size={18} className="shrink-0" />
+                  <span className="hidden md:inline">{item.title}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
         {/* Matches docs/figma/Admin/*.jpeg — no real "admin creates an
             event" concept exists on the backend (Events are scoped to a

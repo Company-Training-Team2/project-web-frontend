@@ -98,36 +98,41 @@ export const bookingService = {
   // and no package concept at all — packageId is left blank, which every
   // consumer already treats as optional/missing.
 
-  async getMyBookings(): Promise<MockBooking[]> {
+  // Returns `isLive: true` whenever the real customer/events lookup itself
+  // succeeded — including when it legitimately comes back empty (a real,
+  // brand-new account with zero events/bookings yet). Mock fixtures are
+  // only ever substituted, with `isLive: false`, when the real call
+  // actually failed — a genuinely-empty real account must never be shown
+  // MOCK_BOOKINGS, which would look like real bookings that aren't theirs.
+  async getMyBookings(): Promise<{ bookings: MockBooking[]; isLive: boolean }> {
     try {
       // BookingController.GetCustomerBookings needs a CustomerProfile.Id,
       // which isn't exposed anywhere except EventResponse.customerId — see
       // event.service.ts. No events yet means no real bookings are possible
-      // either (creating one requires an event), so skip straight to mock.
+      // either (creating one requires an event) — that's a real empty
+      // state, not a failure.
       const events = await eventService.getMyEvents();
-      if (events.length === 0) return MOCK_BOOKINGS;
+      if (events.length === 0) return { bookings: [], isLive: true };
 
       const { data } = await apiClient.get<BookingResponse[]>(`/Booking/customer/${events[0].customerId}`);
-      if (data.length === 0) return MOCK_BOOKINGS;
-
       await registerVendorsFor(data);
-      return data.map(toMockBooking);
+      return { bookings: data.map(toMockBooking), isLive: true };
     } catch {
-      return MOCK_BOOKINGS;
+      return { bookings: MOCK_BOOKINGS, isLive: false };
     }
   },
 
-  async getMyBookingById(id: string): Promise<MockBooking | undefined> {
+  async getMyBookingById(id: string): Promise<{ booking: MockBooking | undefined; isLive: boolean }> {
     if (/^\d+$/.test(id)) {
       try {
         const { data } = await apiClient.get<BookingResponse>(`/Booking/${id}`);
         await registerVendorsFor([data]);
-        return toMockBooking(data);
+        return { booking: toMockBooking(data), isLive: true };
       } catch {
         // fall through to mock lookup below
       }
     }
-    return getMockBookingById(id);
+    return { booking: getMockBookingById(id), isLive: false };
   },
 };
 

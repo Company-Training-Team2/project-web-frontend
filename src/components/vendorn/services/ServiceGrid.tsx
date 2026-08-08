@@ -1,77 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { MoreVertical, Plus } from "lucide-react";
+import { Star, Plus } from "lucide-react";
+
+type ServiceStatus = "Active" | "Draft";
 
 type Service = {
   id: string;
   name: string;
   category: string;
+  status: ServiceStatus;
+  rating?: string;
+  reviews?: number;
   priceLabel: string;
   price: string;
-  bookings: number;
-  revenue: string;
-  rating: string;
-  reviews: number;
+  metaLabel: string;
+  metaValue: string;
 };
 
 const services: Service[] = [
   {
-    id: "signature-heritage-banquet",
-    name: "Signature Heritage Banquet",
-    category: "HERITAGE CATERING",
-    priceLabel: "Starting Price",
-    price: "From £32,900",
-    bookings: 142,
-    revenue: "8.4k",
-    rating: "4.9",
-    reviews: 142,
+    id: "the-grand-ballroom",
+    name: "The Grand Ballroom",
+    category: "WEDDING VENUE",
+    status: "Active",
+    rating: "5.0",
+    reviews: 128,
+    priceLabel: "STARTING AT",
+    price: "EGP 45,000",
+    metaLabel: "UPCOMING",
+    metaValue: "12 Bookings",
   },
   {
-    id: "royal-orchid-centerpieces",
-    name: "Royal Orchid Centerpieces",
-    category: "FLORAL DESIGN",
-    priceLabel: "Estimated Price",
-    price: "£4,200",
-    bookings: 0,
-    revenue: "32",
-    rating: "4.7",
-    reviews: 32,
-  },
-  {
-    id: "glass-pavilion-estate",
-    name: "The Glass Pavilion Estate",
-    category: "VENUE HIRE",
-    priceLabel: "Base Rate",
-    price: "From £26,000",
-    bookings: 88,
-    revenue: "15.2k",
-    rating: "4.8",
-    reviews: 88,
-  },
-  {
-    id: "artisanal-canape-selection",
-    name: "Artisanal Canapé Selection",
+    id: "savore-signature-catering",
+    name: "Savoré Signature Catering",
     category: "CATERING",
-    priceLabel: "Per Head",
-    price: "From £65.00",
-    bookings: 210,
-    revenue: "5.1k",
+    status: "Active",
     rating: "4.9",
-    reviews: 210,
+    reviews: 86,
+    priceLabel: "STARTING AT",
+    price: "EGP 1,200/guest",
+    metaLabel: "UPCOMING",
+    metaValue: "5 Bookings",
   },
   {
-    id: "heritage-classic-fleet",
-    name: "Heritage Classic Fleet",
-    category: "TRANSPORT",
-    priceLabel: "Daily Rate",
-    price: "£3,800",
-    bookings: 34,
-    revenue: "5.2k",
-    rating: "4.6",
-    reviews: 34,
+    id: "atelier-fleur-heritage",
+    name: "Atelier Fleur - Heritage",
+    category: "FLORIST",
+    status: "Draft",
+    priceLabel: "PROPOSED PRICE",
+    price: "EGP 8,500",
+    metaLabel: "COMPLETION",
+    metaValue: "85%",
   },
 ];
+
+const statusStyles: Record<ServiceStatus, string> = {
+  Active: "bg-[#1F7A4D] text-white",
+  Draft: "bg-[#8B716A] text-white",
+};
 
 export default function ServiceGrid() {
   return (
@@ -82,57 +69,61 @@ export default function ServiceGrid() {
           href={`/vendor/services/${s.id}/edit`}
           className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] overflow-hidden hover:shadow-md transition"
         >
-          <div className="h-36 bg-[#DCCFC0] flex items-center justify-center text-[#8B716A] text-xs">
-            {s.name}
+          <div className="relative h-40 bg-[#DCCFC0]">
+            <span
+              className={`absolute top-3 left-3 text-[10px] font-semibold px-2.5 py-1 rounded-full ${statusStyles[s.status]}`}
+            >
+              {s.status}
+            </span>
+
+            {s.rating && (
+              <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-semibold bg-white/90 text-[#2B2622] px-2 py-1 rounded-full">
+                <Star size={11} className="fill-[#B08D3E] text-[#B08D3E]" />
+                {s.rating} ({s.reviews})
+              </span>
+            )}
           </div>
 
           <div className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0">
-                <p className="text-[10px] text-[#8B7E72] uppercase tracking-wide">
-                  {s.category}
-                </p>
-                <h3 className="font-semibold text-[#2B2622] text-sm truncate">
-                  {s.name}
-                </h3>
-              </div>
-              <button
-                onClick={(e) => e.preventDefault()}
-                className="text-[#8B716A] hover:text-[#2B2622] shrink-0"
-              >
-                <MoreVertical size={16} />
-              </button>
-            </div>
+            <p className="text-[10px] text-[#8B7E72] uppercase tracking-wide">
+              {s.category}
+            </p>
+            <h3 className="font-serif font-semibold text-[#2B2622] mt-1">
+              {s.name}
+            </h3>
 
-            <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#DCCFC0]">
               <div>
                 <p className="text-[10px] text-[#8B7E72]">{s.priceLabel}</p>
-                <p className="font-semibold text-sm text-[#2B2622]">
+                <p className="font-semibold text-sm text-[#A3391C]">
                   {s.price}
                 </p>
               </div>
-              <span className="text-xs font-medium text-[#A3391C] bg-[#EDE0D2] px-2 py-1 rounded-full">
-                ★ {s.rating}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-[#8B716A] border-t border-[#DCCFC0] mt-3 pt-3">
-              <span>{s.bookings} bookings</span>
-              <span>{s.revenue} revenue</span>
+              <div className="text-right">
+                <p className="text-[10px] text-[#8B7E72]">{s.metaLabel}</p>
+                <p className="font-medium text-sm text-[#2B2622]">
+                  {s.metaValue}
+                </p>
+              </div>
             </div>
           </div>
         </Link>
       ))}
 
-      <button className="rounded-[16px] border-2 border-dashed border-[#DCCFC0] flex flex-col items-center justify-center gap-2 text-[#8B716A] hover:bg-[#F6ECE0] transition min-h-[220px]">
-        <div className="w-10 h-10 rounded-full bg-[#EDE0D2] flex items-center justify-center text-[#A3391C]">
+      <Link
+        href="/vendor/services/new"
+        className="rounded-[16px] border-2 border-dashed border-[#DCCFC0] flex flex-col items-center justify-center gap-3 text-[#8B716A] hover:bg-[#F6ECE0] transition min-h-[260px]"
+      >
+        <div className="w-11 h-11 rounded-full bg-[#A3391C] flex items-center justify-center text-white">
           <Plus size={20} />
         </div>
-        <span className="text-sm font-medium">Create New Experience</span>
-        <span className="text-xs text-center max-w-[160px]">
-          Expand your portfolio with a new high-end service.
+        <span className="text-sm font-semibold text-[#2B2622]">
+          Create New Service
         </span>
-      </button>
+        <span className="text-xs text-center max-w-[180px]">
+          Add a new offering to your vendor portfolio.
+        </span>
+      </Link>
     </div>
   );
 }

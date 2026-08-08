@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Sidebar from "@/components/layout/Sidebar";
-import VendorDirectoryTopBar from "@/components/admin/vendors/VendorDirectoryTopBar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import PendingApprovalsList from "@/components/admin/vendors/PendingApprovalsList";
 import VendorApprovalHeader from "@/components/admin/vendors/VendorApprovalHeader";
 import VendorPortfolioGallery from "@/components/admin/vendors/VendorPortfolioGallery";
@@ -38,7 +38,7 @@ export default function AdminVendorDirectoryPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <VendorDirectoryTopBar />
+        <AdminTopBar searchPlaceholder="Search vendors..." />
 
         <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start min-w-0">
           <PendingApprovalsList vendors={vendors} selectedId={selectedId} onSelect={setSelectedId} />

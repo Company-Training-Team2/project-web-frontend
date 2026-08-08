@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import Sidebar from "@/components/layout/Sidebar";
@@ -12,26 +12,65 @@ import VerificationInsightsCard from "@/components/admin/vendors/VerificationIns
 import ComplianceDossierCard from "@/components/admin/vendors/ComplianceDossierCard";
 import InternalNotesCard from "@/components/admin/vendors/InternalNotesCard";
 import ApprovalActionBar from "@/components/admin/vendors/ApprovalActionBar";
+import LoadingScreen from "@/components/shared/LoadingScreen";
 import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
-import { ADMIN_PENDING_VENDORS } from "@/lib/mock/adminVendors";
+import { adminService } from "@/services/admin.service";
+import { AdminPendingVendor } from "@/lib/mock/adminVendors";
 
 export default function AdminVendorDirectoryPage() {
   useRequireAdminAuth();
-  const [vendors, setVendors] = useState(ADMIN_PENDING_VENDORS);
-  const [selectedId, setSelectedId] = useState(ADMIN_PENDING_VENDORS[0]?.id ?? "");
+  const [vendors, setVendors] = useState<AdminPendingVendor[] | undefined>(undefined);
+  const [selectedId, setSelectedId] = useState("");
 
-  const selected = vendors.find((v) => v.id === selectedId) ?? vendors[0];
+  useEffect(() => {
+    adminService.getPendingVendorsAdapted().then((list) => {
+      setVendors(list);
+      setSelectedId(list[0]?.id ?? "");
+    });
+  }, []);
 
-  // No real vendor-review payload exists yet to persist these decisions
-  // against (see admin.service.ts header comment) — this just removes the
-  // vendor from the local pending queue and confirms the action.
-  const resolveVendor = (action: "approved" | "rejected" | "changes requested") => {
-    if (!selected) return;
+  const selected = vendors?.find((v) => v.id === selectedId) ?? vendors?.[0];
+
+  const resolveVendor = async (
+    action: "approved" | "rejected" | "changes requested",
+    apiCall: (id: number) => Promise<void>
+  ) => {
+    if (!selected || !vendors) return;
+
+    // A real, numeric vendorProfileId means this came from the live
+    // GET /admin/vendors/pending — persist the decision for real. A mock
+    // fixture id ("pv1"...) has nothing real to call against (backend/DB
+    // down, or genuinely a demo entry), so it's just removed locally.
+    if (/^\d+$/.test(selected.id)) {
+      try {
+        await apiCall(Number(selected.id));
+      } catch (error: unknown) {
+        toast.error(
+          error && typeof error === "object" && "response" in error
+            ? "Couldn't save that decision. Try again."
+            : "Couldn't reach the server."
+        );
+        return;
+      }
+    }
+
     toast.success(`${selected.businessName} ${action}.`);
     const remaining = vendors.filter((v) => v.id !== selected.id);
     setVendors(remaining);
     setSelectedId(remaining[0]?.id ?? "");
   };
+
+  if (vendors === undefined) {
+    return (
+      <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
+        <Sidebar />
+        <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
+          <AdminTopBar searchPlaceholder="Search vendors..." />
+          <LoadingScreen fullScreen={false} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
@@ -57,9 +96,11 @@ export default function AdminVendorDirectoryPage() {
 
               <ApprovalActionBar
                 onReport={() => toast.info(`${selected.businessName} reported for review.`)}
-                onReject={() => resolveVendor("rejected")}
-                onRequestChanges={() => resolveVendor("changes requested")}
-                onApprove={() => resolveVendor("approved")}
+                onReject={() => resolveVendor("rejected", (id) => adminService.rejectVendor(id))}
+                onRequestChanges={() =>
+                  resolveVendor("changes requested", (id) => adminService.requestVendorChanges(id))
+                }
+                onApprove={() => resolveVendor("approved", (id) => adminService.approveVendor(id))}
               />
             </div>
           ) : (

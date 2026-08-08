@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/layout/Sidebar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import ReportsHeader from "@/components/admin/reports/ReportsHeader";
 import StatsCards from "@/components/admin/reports/StatsCards";
 import BottomSection from "@/components/admin/reports/BottomSection";
@@ -14,6 +15,7 @@ export default function ReportsPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
+        <AdminTopBar searchPlaceholder="Search data points..." />
         <ReportsHeader />
 
         <StatsCards />

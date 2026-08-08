@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Sidebar from "@/components/layout/Sidebar";
-import SettingsTopBar from "@/components/admin/settings/SettingsTopBar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import SettingsHeader from "@/components/admin/settings/SettingsHeader";
 import PlatformSettingsCard from "@/components/admin/settings/PlatformSettingsCard";
 import CommissionFinancialsCard from "@/components/admin/settings/CommissionFinancialsCard";
@@ -58,7 +58,7 @@ export default function AdminSettingsPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <SettingsTopBar />
+        <AdminTopBar searchPlaceholder="Search system settings..." />
         <SettingsHeader onReset={handleReset} onSave={handleSave} isSaving={isSaving} />
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3 min-w-0">

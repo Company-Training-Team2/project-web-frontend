@@ -1,7 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/layout/Sidebar";
-import DashboardTopBar from "@/components/admin/dashboard/DashboardTopBar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import StatsCards from "@/components/admin/dashboard/StatsCards";
 import RevenueIntelligence from "@/components/admin/dashboard/RevenueIntelligence";
@@ -18,7 +18,7 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <DashboardTopBar />
+        <AdminTopBar searchPlaceholder="Search vendors, users, or events..." />
         <DashboardHeader />
         <StatsCards />
 

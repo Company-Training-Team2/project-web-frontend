@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
-import TopBar from "@/components/admin/users/TopBar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
 import UserManagementHeader from "@/components/admin/users/UserManagementHeader";
 import UsersTable, { Member } from "@/components/admin/users/UsersTable";
 import MemberProfilePanel from "@/components/admin/users/MemberProfilePanel";
@@ -18,7 +18,7 @@ export default function UsersPage() {
       <Sidebar />
 
       <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
-        <TopBar />
+        <AdminTopBar searchPlaceholder="Search members, roles..." />
         <UserManagementHeader />
 
         <div className="flex flex-col lg:flex-row gap-6 items-start min-w-0">

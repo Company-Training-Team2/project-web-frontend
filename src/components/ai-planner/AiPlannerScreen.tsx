@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AiPlannerHeader from "./AiPlannerHeader";
@@ -16,13 +16,31 @@ import { useAuth } from "@/context/AuthContext";
 import { PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
 import { AiChatHistory, sendAiChatMessage } from "@/services/ai.service";
 
-const HISTORY_STORAGE_KEY = "ai-planner-history";
+const CONVERSATION_STORAGE_KEY = "ai-planner-conversation";
+// localStorage (not sessionStorage) so the conversation survives closing
+// the tab/browser, but self-expires after 30 days of inactivity rather
+// than sitting there forever — every send refreshes `savedAt`, so this is
+// "30 days since the customer last talked to it", not since it started.
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
-function loadStoredHistory(): AiChatHistory | null {
+interface StoredConversation {
+  savedAt: number;
+  messages: PlannerMessage[];
+  history: AiChatHistory;
+}
+
+function loadStoredConversation(): StoredConversation | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(HISTORY_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AiChatHistory) : null;
+    const raw = localStorage.getItem(CONVERSATION_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as StoredConversation;
+    if (Date.now() - parsed.savedAt > THIRTY_DAYS_MS) {
+      localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -34,14 +52,25 @@ function loadStoredHistory(): AiChatHistory | null {
 export default function AiPlannerScreen() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  // Starts empty — no scripted/mock conversation. The first thing in here
-  // is whatever the customer actually says and the AI's real reply to it.
-  const [messages, setMessages] = useState<PlannerMessage[]>([]);
+  // Starts empty (no scripted/mock conversation) unless a saved
+  // conversation from the last 30 days is sitting in localStorage — see
+  // loadStoredConversation/the persistence effect below.
+  const [messages, setMessages] = useState<PlannerMessage[]>(() => loadStoredConversation()?.messages ?? []);
   const [isSending, setIsSending] = useState(false);
   // The AI backend is stateless (no database) — this is the full running
   // transcript it handed back last time, resent on every call so it can
   // pick the conversation back up. See services/ai.service.ts.
-  const [history, setHistory] = useState<AiChatHistory | null>(loadStoredHistory);
+  const [history, setHistory] = useState<AiChatHistory | null>(() => loadStoredConversation()?.history ?? null);
+
+  // Persists `messages` + `history` together on every change, so a reload
+  // (or coming back days later) restores exactly what was on screen, not
+  // just what the AI remembers. `savedAt` refreshes each time, so this
+  // expires 30 days after the last message, not 30 days after the first.
+  useEffect(() => {
+    if (typeof window === "undefined" || messages.length === 0) return;
+    const payload: StoredConversation = { savedAt: Date.now(), messages, history: history ?? [] };
+    localStorage.setItem(CONVERSATION_STORAGE_KEY, JSON.stringify(payload));
+  }, [messages, history]);
 
   const requireAuthOrRedirect = () => {
     if (isAuthenticated) return true;
@@ -70,9 +99,6 @@ export default function AiPlannerScreen() {
     try {
       const { reply, history: updatedHistory } = await sendAiChatMessage(text, history);
       setHistory(updatedHistory);
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updatedHistory));
-      }
       appendAssistantMessage(reply);
     } catch {
       appendAssistantMessage(fallbackReply);

@@ -15,7 +15,10 @@ import { Button } from "@/components/ui/button";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const OTP_LENGTH = 6;
-const COUNTDOWN_SECONDS = 44;
+// Matches the backend's real enforced cooldown (AuthConstants.
+// ResendOtpCooldownSeconds) — no point re-enabling the button locally
+// before the server would actually accept another request.
+const COUNTDOWN_SECONDS = 60;
 
 const schema = z.object({
   code: z.string().length(OTP_LENGTH, "Enter the 6-digit code"),
@@ -26,11 +29,13 @@ type FormData = z.infer<typeof schema>;
 export default function OTPForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "your email";
+  const rawEmail = searchParams.get("email");
+  const email = rawEmail || "your email";
   const purpose = searchParams.get("purpose") === "register" ? "register" : "reset-password";
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const canResend = countdown <= 0;
+  const canResend = countdown <= 0 && !!rawEmail && !isResending;
 
   const {
     control,
@@ -56,10 +61,28 @@ export default function OTPForm() {
     return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
-  const handleResend = () => {
-    setCountdown(COUNTDOWN_SECONDS);
-    resetField("code");
-    toast.info("New code sent to your email.");
+  const handleResend = async () => {
+    if (!rawEmail) return;
+    setIsResending(true);
+    try {
+      if (purpose === "register") {
+        await authService.resendOtp(rawEmail);
+      } else {
+        // No separate "resend reset code" endpoint — requesting forgot-password
+        // again for the same email issues a fresh reset OTP the same way.
+        await authService.forgotPassword({ email: rawEmail });
+      }
+      resetField("code");
+      // Only start the visible cooldown once the server actually agreed to
+      // send another code — a failed request (e.g. still in its own
+      // cooldown window) shouldn't lock the button for another 60s on top.
+      setCountdown(COUNTDOWN_SECONDS);
+      toast.success("New code sent to your email.");
+    } catch (error: unknown) {
+      toast.error(getAuthErrorMessage(error, "Couldn't resend the code. Try again in a moment."));
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -124,7 +147,7 @@ export default function OTPForm() {
         </div>
 
         <div className="mt-[30px] space-y-[12px] text-center">
-          {!canResend ? (
+          {countdown > 0 ? (
             <p className="text-[14px] font-bold text-[#b23a19]">
               Resend in {formatTime(countdown)}
             </p>
@@ -137,7 +160,7 @@ export default function OTPForm() {
               disabled={!canResend}
               className="font-medium text-[#b8aea8] underline hover:text-[#b23a19] disabled:cursor-not-allowed disabled:opacity-80"
             >
-              Resend
+              {isResending ? "Sending…" : "Resend"}
             </button>
           </p>
         </div>

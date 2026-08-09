@@ -163,6 +163,17 @@ export const authService = {
     return data;
   },
 
+  // Real, live endpoint — POST /auth/resend-otp (AuthController.ResendOtp).
+  // Register-verification only; a "reset-password" OTP is resent by calling
+  // forgotPassword() again instead (see OTPForm's handleResend). The
+  // backend enforces its own 60s cooldown (AuthConstants.
+  // ResendOtpCooldownSeconds) and returns a specific "wait N seconds"
+  // message if called too soon.
+  async resendOtp(email: string): Promise<{ message: string }> {
+    const { data } = await apiClient.post<{ message: string }>("/auth/resend-otp", { email });
+    return data;
+  },
+
   async verifyOtp(payload: VerifyOtpPayload): Promise<{ message: string }> {
     const endpoint = payload.purpose === "register" ? "/auth/verify-email" : "/auth/verify-reset-code";
     const { data } = await apiClient.post<{ message: string }>(endpoint, {

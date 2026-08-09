@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,7 +16,7 @@ import SocialLogin from "./SocialLogin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
-import { getAuthErrorMessage } from "@/services/auth.service";
+import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -27,6 +27,7 @@ type FormData = z.infer<typeof schema>;
 
 function LoginFormInner() {
   const { login } = useAuth();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   // Screens that require an account only at the point of action (AI
   // Planner's first message, Checkout's "Pay" button) send guests here as
@@ -47,7 +48,29 @@ function LoginFormInner() {
       await login(data, redirectTo);
       toast.success("Welcome back!");
     } catch (error: unknown) {
-      toast.error(getAuthErrorMessage(error, "Invalid email or password."));
+      const message = getAuthErrorMessage(error, "Invalid email or password.");
+      // "Registered but never finished the OTP step" is a real, recurring
+      // case — dumping a generic error on them here is a dead end (no code
+      // ever arrived, no way to get one from the login screen). Route them
+      // straight to /otp instead, and fire a real resend so a fresh code is
+      // actually on its way rather than making them press "Resend"
+      // themselves for a code that may have already expired. Matched on the
+      // backend's exact wording (no error code exists to key off instead) —
+      // see AuthConstants.EmailNotVerifiedMessage.
+      if (message.toLowerCase().includes("not verified")) {
+        try {
+          await authService.resendOtp(data.email);
+          toast.info("Please verify your email — we've sent a new code.");
+        } catch (resendError: unknown) {
+          // Most likely the 60s cooldown from an OTP sent moments ago (e.g.
+          // right after registering) — that existing code is still valid,
+          // so this isn't fatal, just don't claim a new one went out.
+          toast.info(getAuthErrorMessage(resendError, "Please enter the code sent to your email."));
+        }
+        router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);
+        return;
+      }
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

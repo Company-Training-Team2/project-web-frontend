@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AiPlannerHeader from "./AiPlannerHeader";
-import LiveDossierHeading from "./LiveDossierHeading";
 import ChatBubble from "./ChatBubble";
 import AiMessageText from "./AiMessageText";
 import BudgetHealthCard from "./BudgetHealthCard";
@@ -14,7 +13,7 @@ import InlineEventCard from "./InlineEventCard";
 import QuickActionPills from "./QuickActionPills";
 import ChatComposer from "./ChatComposer";
 import { useAuth } from "@/context/AuthContext";
-import { MOCK_PLANNER_CONVERSATION, PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
+import { PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
 import { AiChatHistory, sendAiChatMessage } from "@/services/ai.service";
 
 const HISTORY_STORAGE_KEY = "ai-planner-history";
@@ -29,13 +28,15 @@ function loadStoredHistory(): AiChatHistory | null {
   }
 }
 
-// No useRequireAuth here — a guest can open the AI Planner and read the
-// existing dossier. An account is only required the moment they actually
-// try to talk to it (send a message or tap a quick action), gated below.
+// No useRequireAuth here — a guest can open the AI Planner screen itself.
+// An account is only required the moment they actually try to talk to it
+// (send a message or tap a quick action), gated below.
 export default function AiPlannerScreen() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [messages, setMessages] = useState<PlannerMessage[]>(MOCK_PLANNER_CONVERSATION);
+  // Starts empty — no scripted/mock conversation. The first thing in here
+  // is whatever the customer actually says and the AI's real reply to it.
+  const [messages, setMessages] = useState<PlannerMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   // The AI backend is stateless (no database) — this is the full running
   // transcript it handed back last time, resent on every call so it can
@@ -94,8 +95,16 @@ export default function AiPlannerScreen() {
     <div className="flex min-h-screen flex-col bg-[#f6f1ea]">
       <AiPlannerHeader />
 
-      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 lg:px-10">
-        <LiveDossierHeading eventName="The Tuscan Dream" />
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 lg:max-w-3xl lg:px-10 xl:max-w-4xl">
+        {messages.length === 0 && !isSending ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center text-[#a79a90]">
+            <p className="font-serif text-[20px] font-bold text-[#252323]">Plan your event</p>
+            <p className="max-w-xs text-[14px]">
+              Tell me what you&apos;re celebrating — event type, city, guest count, and budget — and I&apos;ll put
+              a plan together.
+            </p>
+          </div>
+        ) : null}
 
         {messages.map((message) => (
           <ChatBubble key={message.id} role={message.role}>
@@ -122,13 +131,9 @@ export default function AiPlannerScreen() {
             </span>
           </ChatBubble>
         ) : null}
-
-        <div>
-          <h3 className="mb-2 font-serif text-[16px] font-bold text-[#252323]">Curated Recommendations</h3>
-        </div>
       </div>
 
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
         <QuickActionPills onSelect={handleQuickAction} />
         <ChatComposer onSend={handleSend} disabled={isSending} />
       </div>

@@ -130,7 +130,7 @@ function LoginFormInner() {
         </form>
 
         <div className="mt-[34px]">
-          <SocialLogin />
+          <SocialLogin redirectTo={redirectTo} />
         </div>
 
         <p className="mt-[22px] text-center text-[14px] text-[#6d5d54]">

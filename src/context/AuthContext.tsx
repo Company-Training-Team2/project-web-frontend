@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { authService, AuthUser, LoginPayload, RegisterPayload } from "@/services/auth.service";
+import { authService, AuthResponse, AuthUser, LoginPayload, RegisterPayload } from "@/services/auth.service";
 import { userService } from "@/services/user.service";
 
 interface AuthContextType {
@@ -16,6 +16,8 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (payload: LoginPayload, redirectTo?: string) => Promise<void>;
+  loginWithGoogle: (idToken: string, redirectTo?: string) => Promise<void>;
+  loginWithApple: (idToken: string, redirectTo?: string) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -47,8 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (payload: LoginPayload, redirectTo?: string) => {
-    const data = await authService.login(payload);
+  // Shared by login()/loginWithGoogle()/loginWithApple() — once any of them
+  // has a session back from the backend, "what do we do with it" is
+  // identical regardless of which provider it came from.
+  const completeSignIn = async (data: AuthResponse, redirectTo?: string) => {
     authService.saveSession(data);
     setUser(data.user);
 
@@ -83,6 +87,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push(fallback);
   };
 
+  const login = async (payload: LoginPayload, redirectTo?: string) => {
+    const data = await authService.login(payload);
+    await completeSignIn(data, redirectTo);
+  };
+
+  const loginWithGoogle = async (idToken: string, redirectTo?: string) => {
+    const data = await authService.googleLogin(idToken);
+    await completeSignIn(data, redirectTo);
+  };
+
+  const loginWithApple = async (idToken: string, redirectTo?: string) => {
+    const data = await authService.appleLogin(idToken);
+    await completeSignIn(data, redirectTo);
+  };
+
   const register = async (payload: RegisterPayload) => {
     // Registering never returns a session — the account must verify its email
     // (OTP screen) before it can sign in, so there's nothing to save here.
@@ -102,6 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
+        loginWithGoogle,
+        loginWithApple,
         register,
         logout,
       }}

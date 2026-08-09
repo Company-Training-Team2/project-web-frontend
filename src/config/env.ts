@@ -10,3 +10,12 @@ export const API_BASE_URL =
 // pointing at a Python function running separately during local dev (e.g.
 // a plain `uvicorn`), since `next dev` alone doesn't serve /api/*.py.
 export const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "";
+
+// Social sign-in — both are PUBLIC client identifiers (not secrets), safe to
+// ship in client-side JS. Empty string means "not configured yet"; the
+// button components use that to render a disabled/hidden state instead of
+// launching a flow that can only fail. Must match the backend's
+// GoogleAuth:ClientId / AppleAuth:ClientId (appsettings.json) — the backend
+// verifies the id_token's audience against those same values.
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+export const APPLE_CLIENT_ID = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "";

@@ -125,6 +125,23 @@ export const authService = {
     return toAuthResponse(data);
   },
 
+  // Real, live endpoint — POST /auth/google (AuthController.GoogleLogin).
+  // idToken is the credential Google Identity Services hands back to
+  // GoogleSignInButton's callback; the backend verifies it against Google's
+  // public keys (AuthService.ValidateGoogleIdTokenAsync) before trusting it.
+  async googleLogin(idToken: string): Promise<AuthResponse> {
+    const { data } = await apiClient.post<BackendAuthResponse>("/auth/google", { idToken });
+    return toAuthResponse(data);
+  },
+
+  // Real, live endpoint — POST /auth/apple (AuthController.AppleLogin).
+  // idToken is what AppleID.auth.signIn() resolves with (the popup flow);
+  // same verify-against-the-provider's-public-keys pattern as Google.
+  async appleLogin(idToken: string): Promise<AuthResponse> {
+    const { data } = await apiClient.post<BackendAuthResponse>("/auth/apple", { idToken });
+    return toAuthResponse(data);
+  },
+
   // Registration never returns a session — the account can't sign in until the
   // email is verified via the OTP screen, so there is nothing to save yet.
   async register(payload: RegisterPayload): Promise<{ message: string }> {

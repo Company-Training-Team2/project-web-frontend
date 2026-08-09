@@ -95,7 +95,7 @@ export default function AiPlannerScreen() {
     <div className="flex min-h-screen flex-col bg-[#f6f1ea]">
       <AiPlannerHeader />
 
-      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 lg:max-w-3xl lg:px-10 xl:max-w-4xl">
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 lg:max-w-4xl lg:px-10 xl:max-w-5xl 2xl:max-w-6xl">
         {messages.length === 0 && !isSending ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center text-[#a79a90]">
             <p className="font-serif text-[20px] font-bold text-[#252323]">Plan your event</p>
@@ -133,7 +133,7 @@ export default function AiPlannerScreen() {
         ) : null}
       </div>
 
-      <div className="mx-auto w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+      <div className="mx-auto w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
         <QuickActionPills onSelect={handleQuickAction} />
         <ChatComposer onSend={handleSend} disabled={isSending} />
       </div>

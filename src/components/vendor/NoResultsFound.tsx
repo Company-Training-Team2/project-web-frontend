@@ -1,27 +1,27 @@
 import Link from "next/link";
 import { SearchX } from "lucide-react";
 
-import MarketplaceHeader from "@/components/shared/MarketplaceHeader";
-import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
 import { Button } from "@/components/ui/button";
 import VendorCard from "./VendorCard";
 import { MOCK_VENDORS } from "@/lib/mock/vendors";
 
 /**
  * The Figma frame named "not found" is NOT a route-404 page — it's a rich
- * marketplace "no search results" empty state (nav chrome + curated
+ * marketplace "no search results" empty state (hero + curated
  * recommendations below). The actual 404 page lives at
  * src/app/not-found.tsx and is intentionally left untouched; this component
  * is rendered inline by Search Results / Browse Vendors when a filtered
- * query yields zero matches.
+ * query yields zero matches — both of those screens already render their
+ * own header/footer chrome around it, so this renders content only. It
+ * previously also rendered MarketplaceHeader/MarketplaceFooter itself,
+ * which duplicated the parent screen's nav bar whenever the list came back
+ * empty (visible at desktop width — two stacked "EventHub" nav bars).
  */
 export default function NoResultsFound() {
   const recommendations = MOCK_VENDORS.slice(0, 3);
 
   return (
     <div className="w-full">
-      <MarketplaceHeader />
-
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
         <div className="mx-auto mb-6 grid size-16 place-items-center rounded-full bg-[#f3ede3] text-[#af3718]">
           <SearchX className="size-8" />
@@ -54,8 +54,6 @@ export default function NoResultsFound() {
           ))}
         </div>
       </div>
-
-      <MarketplaceFooter />
     </div>
   );
 }

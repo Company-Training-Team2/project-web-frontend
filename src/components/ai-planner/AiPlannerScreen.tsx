@@ -15,9 +15,19 @@ import QuickActionPills from "./QuickActionPills";
 import ChatComposer from "./ChatComposer";
 import { useAuth } from "@/context/AuthContext";
 import { MOCK_PLANNER_CONVERSATION, PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
-import { sendAiChatMessage } from "@/services/ai.service";
+import { AiChatHistory, sendAiChatMessage } from "@/services/ai.service";
 
-const CONVERSATION_STORAGE_KEY = "ai-planner-conversation-id";
+const HISTORY_STORAGE_KEY = "ai-planner-history";
+
+function loadStoredHistory(): AiChatHistory | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(HISTORY_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as AiChatHistory) : null;
+  } catch {
+    return null;
+  }
+}
 
 // No useRequireAuth here — a guest can open the AI Planner and read the
 // existing dossier. An account is only required the moment they actually
@@ -27,9 +37,10 @@ export default function AiPlannerScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<PlannerMessage[]>(MOCK_PLANNER_CONVERSATION);
   const [isSending, setIsSending] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(() =>
-    typeof window !== "undefined" ? sessionStorage.getItem(CONVERSATION_STORAGE_KEY) : null
-  );
+  // The AI backend is stateless (no database) — this is the full running
+  // transcript it handed back last time, resent on every call so it can
+  // pick the conversation back up. See services/ai.service.ts.
+  const [history, setHistory] = useState<AiChatHistory | null>(loadStoredHistory);
 
   const requireAuthOrRedirect = () => {
     if (isAuthenticated) return true;
@@ -48,18 +59,18 @@ export default function AiPlannerScreen() {
     ]);
   };
 
-  // Talks to the real AI service (ai-service/, POST /api/ai/chat). Falls
-  // back to a canned reply if the service is unreachable — same pattern as
+  // Talks to the real AI backend (POST /api/ai/chat, same-origin). Falls
+  // back to a canned reply if it's unreachable — same pattern as
   // vendor.service.ts falling back to mock fixtures — so the screen stays
-  // usable in demos/offline even without the Python service running.
+  // usable in demos/offline even without the AI function configured.
   const sendToAssistant = async (text: string, fallbackReply: string) => {
     appendUserMessage(text);
     setIsSending(true);
     try {
-      const { reply, conversationId: newConversationId } = await sendAiChatMessage(text, conversationId);
-      setConversationId(newConversationId);
+      const { reply, history: updatedHistory } = await sendAiChatMessage(text, history);
+      setHistory(updatedHistory);
       if (typeof window !== "undefined") {
-        sessionStorage.setItem(CONVERSATION_STORAGE_KEY, newConversationId);
+        sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updatedHistory));
       }
       appendAssistantMessage(reply);
     } catch {

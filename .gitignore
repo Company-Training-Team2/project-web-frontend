@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# python (api/ — AI Planner Vercel Functions)
+.venv*/
+__pycache__/
+*.pyc
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

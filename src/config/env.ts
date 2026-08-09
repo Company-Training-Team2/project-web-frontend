@@ -4,7 +4,9 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5006/api";
 
-// Base URL of the standalone AI Planner service (see /ai-service in the
-// repo root — a separate FastAPI app, not part of the .NET backend).
-export const AI_SERVICE_URL =
-  process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8001";
+// The AI Planner endpoint (POST /api/ai/chat) is a Python Vercel Function
+// living in this same project (see /api/ai/chat.py) — same-origin, so no
+// base URL is needed in production. NEXT_PUBLIC_AI_SERVICE_URL is only for
+// pointing at a Python function running separately during local dev (e.g.
+// a plain `uvicorn`), since `next dev` alone doesn't serve /api/*.py.
+export const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "";

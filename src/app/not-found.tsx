@@ -1,8 +1,12 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import Logo from "@/components/shared/Logo";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
+  const router = useRouter();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-[#faf9f7] px-6 text-center">
       <Logo />
@@ -15,8 +19,16 @@ export default function NotFound() {
         </p>
       </div>
 
-      <Button asChild className="h-[49px] rounded-[7px] bg-[#af3718] px-8 text-[14px] font-medium text-white hover:bg-[#9f3216]">
-        <Link href="/login">Back to EventHub</Link>
+      {/* Goes back to wherever the user actually came from instead of
+          always dumping them on /login — router.back() falls back to a
+          no-op if there's no prior entry in this tab's history (e.g. a
+          bookmarked/typed-in broken link), which is an acceptable edge
+          case here. */}
+      <Button
+        onClick={() => router.back()}
+        className="h-[49px] rounded-[7px] bg-[#af3718] px-8 text-[14px] font-medium text-white hover:bg-[#9f3216]"
+      >
+        Back to EventHub
       </Button>
     </main>
   );

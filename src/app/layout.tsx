@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +30,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable} antialiased`}>
         <AuthProvider>
-          {children}
+          {/* pb-16 reserves room for MobileBottomNav's fixed bar on mobile
+              widths so it doesn't cover the last bit of page content; md:pb-0
+              drops it once the bar itself hides at the md breakpoint. */}
+          <div className="pb-16 md:pb-0">{children}</div>
+          <MobileBottomNav />
           <Toaster richColors position="top-right" />
         </AuthProvider>
       </body>

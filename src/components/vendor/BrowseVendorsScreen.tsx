@@ -8,6 +8,8 @@ import VendorSearchBar from "./VendorSearchBar";
 import CategoryPillFilter from "./CategoryPillFilter";
 import VendorResultsRow from "./VendorResultsRow";
 import VendorList from "./VendorList";
+import MarketplaceHeader from "@/components/shared/MarketplaceHeader";
+import MarketplaceFooter from "@/components/shared/MarketplaceFooter";
 import BottomNav from "@/components/shared/BottomNav";
 import SparkleFab from "@/components/shared/SparkleFab";
 import { MockVendor } from "@/lib/mock/types";
@@ -40,14 +42,25 @@ export default function BrowseVendorsScreen() {
   }, [search, category]);
 
   return (
-    <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-10">
-      {/* No separate Desktop Figma exists for this screen — centering it in
-       * a content-width column (rather than letting cards stretch edge to
-       * edge) is the responsive treatment for tablet/desktop widths. */}
-      <div className="mx-auto w-full max-w-2xl">
-        <BrowseVendorsHeader />
+    <div className="min-h-screen bg-[#f6f1ea] pb-24 lg:pb-0">
+      {/* No separate Desktop Figma exists for this screen. Below `lg` it
+       * keeps its original mobile treatment (BrowseVendorsHeader, centered
+       * column, BottomNav). At `lg`+ it borrows the same marketplace chrome
+       * every other desktop-oriented screen uses (MarketplaceHeader/Footer)
+       * instead of stretching the mobile header across a wide viewport, and
+       * the vendor list switches to a multi-column grid (see VendorList) so
+       * the page doesn't read as a narrow mobile column stranded in a sea
+       * of empty space. */}
+      <div className="hidden lg:block">
+        <MarketplaceHeader />
+      </div>
 
-        <div className="mt-5 space-y-4">
+      <div className="mx-auto w-full max-w-2xl lg:max-w-7xl">
+        <div className="lg:hidden">
+          <BrowseVendorsHeader />
+        </div>
+
+        <div className="mt-5 space-y-4 lg:mt-8 lg:space-y-6">
           <VendorSearchBar value={search} onChange={setSearch} />
           <CategoryPillFilter active={category} onChange={setCategory} />
           <VendorResultsRow count={vendors.length} city="Alexandria" />
@@ -63,8 +76,14 @@ export default function BrowseVendorsScreen() {
         </div>
       </div>
 
+      <div className="hidden lg:block">
+        <MarketplaceFooter />
+      </div>
+
       <SparkleFab />
-      <BottomNav active="browse" />
+      <div className="lg:hidden">
+        <BottomNav active="browse" />
+      </div>
     </div>
   );
 }

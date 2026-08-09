@@ -14,16 +14,10 @@ import { platformService, PlatformStats } from "@/services/platform.service";
 import { searchVendors } from "@/services/vendor.service";
 import { homeService, HomeDashboard } from "@/services/home.service";
 import SampleDataNotice from "@/components/shared/SampleDataNotice";
+import { MAIN_NAV_LINKS } from "@/components/shared/mainNavLinks";
 import { MockVendor } from "@/lib/mock/types";
 
 // --- بيانات وهمية للتصميم (تم تحديث روابط الصور لضمان ظهورها) ---
-const navLinks = [
-  { name: "Marketplace", href: "/vendors", active: true },
-  { name: "Packages", href: "#packages" },
-  { name: "Upcoming Events", href: "#occasions" },
-  { name: "How It Works", href: "#trust" },
-  { name: "Testimonials", href: "#testimonials" },
-];
 
 const occasions = [
   { name: "Weddings", categoryId: "venue", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
@@ -87,6 +81,34 @@ export default function LandingPage() {
       .catch(() => setDashboard(null));
   }, [isAuthenticated, user?.role]);
 
+  // The nav (mainNavLinks.ts) links to /home#packages etc. from OTHER
+  // pages now, not just same-page anchor clicks. On a fresh cross-page
+  // navigation the target element (getElementById confirms it's there,
+  // correctly positioned) exists well before this fires, yet the page
+  // still sits at scrollY 0 — Next.js App Router's own post-navigation
+  // scroll-restoration resets to the top *after* mount, racing (and
+  // beating) a same-tick/rAF scroll attempt. A short delay lets that
+  // restoration finish first so our scroll isn't the one that gets
+  // overridden; retrying on an interval (cleared once it succeeds) makes
+  // this resilient to exactly how long that race turns out to be instead
+  // of guessing a single magic delay.
+  useEffect(() => {
+    if (!window.location.hash) return;
+    const id = window.location.hash.slice(1);
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts += 1;
+      const el = document.getElementById(id);
+      if (el && window.scrollY < 10) {
+        el.scrollIntoView({ behavior: "instant" });
+      }
+      if (attempts >= 10 || (el && window.scrollY > 10)) {
+        clearInterval(timer);
+      }
+    }, 120);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (keyword.trim()) params.set("q", keyword.trim());
@@ -99,18 +121,18 @@ export default function LandingPage() {
       {/* --- 1. HEADER --- */}
       <header className="sticky top-0 z-50 border-b border-[#E3DCD2] bg-[#F5F0EB]/90 px-4 py-4 backdrop-blur-md sm:px-6 md:px-12">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-          <Link href="/" className="shrink-0 font-serif text-xl font-bold tracking-tight text-[#A3391C] sm:text-2xl lg:text-3xl">
+          <Link href="/home" className="shrink-0 font-serif text-xl font-bold tracking-tight text-[#A3391C] sm:text-2xl lg:text-3xl">
             EventHub
           </Link>
           
           <nav className="hidden items-center gap-8 lg:flex">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                href={link.href} 
-                className={`text-sm font-medium transition-colors hover:text-[#A3391C] ${link.active ? "border-b-2 border-[#A3391C] pb-1 text-[#A3391C]" : "text-[#5A524A]"}`}
+            {MAIN_NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-sm font-medium text-[#5A524A] transition-colors hover:text-[#A3391C]"
               >
-                {link.name}
+                {link.label}
               </Link>
             ))}
           </nav>
@@ -355,7 +377,7 @@ export default function LandingPage() {
       </section>
 
       {/* --- 7. PREMIUM PACKAGES --- */}
-      <section className="bg-[#1D2824] px-6 py-24 md:px-12">
+      <section id="packages" className="bg-[#1D2824] px-6 py-24 md:px-12">
         <div className="mx-auto max-w-7xl text-center">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">Signature Experiences</span>
           <h2 className="mt-2 font-serif text-4xl font-bold text-white md:text-5xl">Premium packages</h2>
@@ -403,7 +425,7 @@ export default function LandingPage() {
       </section>
 
       {/* --- 8. TESTIMONIALS --- */}
-      <section className="bg-[#F5F0EB] px-6 py-24 md:px-12">
+      <section id="testimonials" className="bg-[#F5F0EB] px-6 py-24 md:px-12">
         <div className="mx-auto max-w-7xl text-center">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#A3391C]">In Their Words</span>
           <h2 className="mt-2 font-serif text-4xl font-bold text-[#1A1A1A] md:text-5xl">Loved by hosts</h2>
@@ -442,7 +464,7 @@ export default function LandingPage() {
       <footer className="bg-[#EBE5DB] px-6 py-16 md:px-12">
         <div className="mx-auto max-w-7xl border-b border-[#D6CDC1] pb-10 lg:flex lg:justify-between">
            <div className="max-w-sm">
-             <Link href="/" className="font-serif text-3xl font-bold tracking-tight text-[#A3391C]">EventHub</Link>
+             <Link href="/home" className="font-serif text-3xl font-bold tracking-tight text-[#A3391C]">EventHub</Link>
              <p className="mt-4 text-xs leading-relaxed text-[#5A524A]">The curated marketplace for extraordinary events — connecting discerning hosts with the world&apos;s finest vendors.</p>
            </div>
            

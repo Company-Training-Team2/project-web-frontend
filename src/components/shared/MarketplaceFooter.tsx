@@ -14,7 +14,7 @@ export default function MarketplaceFooter({ className }: { className?: string })
     <footer className={cn("hidden w-full border-t border-[#e5ded2] bg-[#faf6f0] px-10 py-8 lg:block", className)}>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <Logo href="/vendors" />
+          <Logo href="/home" />
           <p className="text-[12px] text-[#a79a90]">© 2026 EventHub Marketplace. All rights reserved.</p>
         </div>
         <nav className="flex items-center gap-6">

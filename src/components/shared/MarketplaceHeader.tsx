@@ -9,13 +9,7 @@ import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-
-const NAV_LINKS = [
-  { label: "Venues", href: "/vendors/search?category=venue" },
-  { label: "Catering", href: "/vendors/search?category=catering" },
-  { label: "Floral", href: "/vendors/search?category=florals" },
-  { label: "Planning", href: "/vendors/search?category=planning" },
-];
+import { MAIN_NAV_LINKS } from "./mainNavLinks";
 
 /**
  * Marketplace top nav, shared by every desktop-oriented screen (Search
@@ -24,7 +18,9 @@ const NAV_LINKS = [
  * below that it collapses to a compact bar (back button + logo + a
  * search-icon toggle) so these screens are never left without navigation on
  * phones/tablets, since no separate mobile Figma frame exists for this
- * header specifically.
+ * header specifically. Nav links come from mainNavLinks.ts — the same list
+ * the Home page's own header uses, so the customer flow shows one
+ * consistent nav everywhere instead of two different link sets.
  */
 export default function MarketplaceHeader({ className }: { className?: string }) {
   const { user, isAuthenticated } = useAuth();
@@ -53,7 +49,7 @@ export default function MarketplaceHeader({ className }: { className?: string })
             <button onClick={() => router.back()} aria-label="Back" className="text-[#252323]">
               <ArrowLeft className="size-5" />
             </button>
-            <Logo href="/vendors" className="scale-90" />
+            <Logo href="/home" className="scale-90" />
             <div className="flex items-center gap-3">
               <button aria-label="Search" onClick={() => setMobileSearchOpen(true)} className="text-[#252323]">
                 <Search className="size-5" />
@@ -79,9 +75,9 @@ export default function MarketplaceHeader({ className }: { className?: string })
       {/* Full nav row: lg+ */}
       <header className={cn("hidden w-full items-center justify-between border-b border-[#e5ded2] bg-[#faf6f0] px-6 py-4 lg:flex xl:px-10", className)}>
         <div className="flex items-center gap-6 xl:gap-10">
-          <Logo href="/vendors" />
+          <Logo href="/home" />
           <nav className="flex items-center gap-4 xl:gap-6">
-            {NAV_LINKS.map((link) => (
+            {MAIN_NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}

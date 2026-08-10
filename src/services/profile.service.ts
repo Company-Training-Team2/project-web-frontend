@@ -48,12 +48,7 @@ export const profileService = {
    */
   async updateProfile(
     payload: UpdateProfilePayload
-  ): Promise<UserProfile> {
-    const { data } = await apiClient.put<UserProfile>(
-      "/users/me",
-      payload
-    );
-
-    return data;
+  ): Promise<void> {
+    await apiClient.put("/users/me", payload);
   },
 };

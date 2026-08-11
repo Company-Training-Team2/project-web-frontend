@@ -1,5 +1,5 @@
-import VendorComingSoon from "@/components/vendorn/VendorComingSoon";
+import VendorDashboardScreen from "@/components/vendorn/dashboard/VendorDashboardScreen";
 
 export default function VendorDashboardPage() {
-  return <VendorComingSoon title="Vendor Dashboard" />;
+  return <VendorDashboardScreen />;
 }

@@ -1,36 +1,42 @@
-const items = [
-  { title: "Corporate Events", value: 65 },
-  { title: "Private Weddings", value: 25 },
-  { title: "Galas & Fundraisers", value: 10 },
-];
+import { WorkPostPerformance } from "@/services/vendorPortal.service";
 
-export default function PerformanceIntelligence() {
+// Was a hardcoded "revenue by event category" breakdown — the backend has
+// no event-category analytics, only per-service booking/revenue totals
+// (WorkPostPerformance), so this shows each service's real share of total
+// bookings instead.
+export default function PerformanceIntelligence({ performance }: { performance: WorkPostPerformance[] }) {
+  const totalBookings = performance.reduce((sum, p) => sum + p.totalBookings, 0);
+  const top = [...performance].sort((a, b) => b.totalBookings - a.totalBookings).slice(0, 4);
+
   return (
-    <div className="rounded-[16px] bg-[#1B2421] text-white p-4 md:p-6 h-full flex flex-col">
-      <h2 className="font-semibold text-lg">Performance Intelligence</h2>
+    <div className="flex h-full flex-col rounded-[16px] bg-[#1B2421] p-4 text-white md:p-6">
+      <h2 className="text-lg font-semibold">Performance Intelligence</h2>
 
-      <div className="space-y-5 mt-6">
-        {items.map((item) => (
-          <div key={item.title}>
-            <div className="flex justify-between mb-2 text-sm">
-              <span>{item.title}</span>
-              <span>{item.value}%</span>
-            </div>
+      {top.length === 0 ? (
+        <p className="mt-6 text-sm text-white/60">No bookings yet to break down.</p>
+      ) : (
+        <div className="mt-6 space-y-5">
+          {top.map((p) => {
+            const share = totalBookings > 0 ? Math.round((p.totalBookings / totalBookings) * 100) : 0;
+            return (
+              <div key={p.workPostId}>
+                <div className="mb-2 flex justify-between text-sm">
+                  <span className="truncate pr-2">{p.title}</span>
+                  <span className="shrink-0">{share}%</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10">
+                  <div className="h-1.5 rounded-full bg-[#D97745]" style={{ width: `${share}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-            <div className="w-full bg-white/10 rounded-full h-1.5">
-              <div
-                className="bg-[#D97745] h-1.5 rounded-full"
-                style={{ width: `${item.value}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 rounded-xl bg-white/5 border border-white/10 p-4 text-xs text-white/70 leading-relaxed">
-        &quot;Your inquiries for &apos;Luxury Weddings&apos; have increased
-        by 40% this month. Consider highlighting your &apos;Gold
-        Package&apos; on the storefront.&quot;
+      <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-xs leading-relaxed text-white/70">
+        {top.length > 0
+          ? `"${top[0].title}" is your highest-booked service — consider featuring it more prominently on your storefront.`
+          : "Once you have bookings, your best-performing service shows up here."}
       </div>
     </div>
   );

@@ -1,5 +1,3 @@
-import { Plus } from "lucide-react";
-
 export default function ServicesHeader() {
   return (
     <div className="mt-6">

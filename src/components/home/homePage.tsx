@@ -14,6 +14,7 @@ import { platformService, PlatformStats } from "@/services/platform.service";
 import { searchVendors } from "@/services/vendor.service";
 import { homeService, HomeDashboard } from "@/services/home.service";
 import SampleDataNotice from "@/components/shared/SampleDataNotice";
+import MobileNavDrawer from "@/components/shared/MobileNavDrawer";
 import { MAIN_NAV_LINKS } from "@/components/shared/mainNavLinks";
 import { MockVendor } from "@/lib/mock/types";
 
@@ -138,6 +139,10 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5 sm:gap-4">
+  {/* Hamburger — opens the same links as the desktop nav row above, since
+      that <nav> is hidden below lg: */}
+    <MobileNavDrawer />
+
   {/* Heart Icon */}
     <Link href="/favorites" className="text-[#5A524A] hover:text-[#A3391C] transition-colors">
     <Heart className="h-5 w-5" />

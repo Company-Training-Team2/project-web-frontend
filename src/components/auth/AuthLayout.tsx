@@ -8,7 +8,6 @@ interface AuthLayoutProps {
   showBack?: boolean;
   backHref?: string;
   showHeader?: boolean;
-  showStatusBar?: boolean;
   className?: string;
   /** The default shell locks every auth page into a narrow ~393-438px
    * column (by design, for Login/Register/OTP/etc's single-field forms) —
@@ -23,7 +22,6 @@ export default function AuthLayout({
   showBack = false,
   backHref = "/login",
   showHeader = true,
-  showStatusBar = false,
   className,
   wide = false,
 }: AuthLayoutProps) {
@@ -87,16 +85,6 @@ export default function AuthLayout({
             className
           )}
         >
-          {showStatusBar ? (
-            <div className="flex h-11 items-center justify-between px-7 text-[15px] font-medium text-black lg:hidden">
-              <span>9:41</span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-3 w-4 skew-x-[-18deg] bg-black" />
-                <span className="h-3 w-4 rounded-sm border-2 border-black" />
-              </span>
-            </div>
-          ) : null}
-
           {showHeader ? (
             <header className="relative flex h-[60px] items-center justify-center border-b border-[#ded2c3] bg-white">
               {showBack ? <BackButton href={backHref} /> : null}

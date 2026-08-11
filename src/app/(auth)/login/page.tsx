@@ -3,7 +3,7 @@ import LoginForm from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
   return (
-    <AuthLayout showHeader={false} showStatusBar>
+    <AuthLayout showHeader={false}>
       <LoginForm />
     </AuthLayout>
   );

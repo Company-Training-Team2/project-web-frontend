@@ -1,62 +1,60 @@
-const engagements = [
-  {
-    tag: "CONFIRMED",
-    tagColor: "bg-green-100 text-green-700",
-    title: "The Thompson Wedding",
-    date: "June 15, 2024",
-    time: "2:00 PM",
-  },
-  {
-    tag: "PENDING",
-    tagColor: "bg-yellow-100 text-yellow-700",
-    title: "Vogue Annual Gala",
-    date: "June 17, 2024",
-    time: "7:00 PM",
-  },
-  {
-    tag: "CONFIRMED",
-    tagColor: "bg-green-100 text-green-700",
-    title: "Birthday Soirée - Isabella S.",
-    date: "June 19, 2024",
-    time: "6:00 PM",
-  },
-];
+import Link from "next/link";
+import { parseDateOnly } from "@/lib/date";
+import { UpcomingVendorBooking } from "@/services/vendorPortal.service";
 
-export default function UpcomingEngagements() {
+const tagStyle: Record<string, string> = {
+  Pending: "bg-yellow-100 text-yellow-700",
+  Accepted: "bg-green-100 text-green-700",
+  Paid: "bg-green-100 text-green-700",
+  Completed: "bg-[#DCE7E2] text-[#3F6656]",
+};
+
+export default function UpcomingEngagements({ bookings }: { bookings: UpcomingVendorBooking[] }) {
   return (
-    <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-6 mt-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="mt-6 rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-6">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold text-[#2B2622]">Upcoming Engagements</h2>
-        <button className="text-xs md:text-sm text-[#A3391C] font-medium">
+        <Link href="/vendor/bookings" className="text-xs font-medium text-[#A3391C] md:text-sm">
           View All
-        </button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {engagements.map((e) => (
-          <div
-            key={e.title}
-            className="rounded-xl border border-[#DCCFC0] bg-white overflow-hidden"
-          >
-            <div className="h-28 bg-[#DCCFC0]" />
+      {bookings.length === 0 ? (
+        <p className="text-sm text-[#8B7E72]">Nothing on the calendar yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {bookings.map((b) => (
+            <div
+              key={b.bookingId}
+              className="overflow-hidden rounded-xl border border-[#DCCFC0] bg-white"
+            >
+              <div className="flex h-28 items-center justify-center bg-[#DCCFC0] font-serif text-2xl font-bold text-white/80">
+                {b.workPostTitle?.[0]?.toUpperCase() ?? "E"}
+              </div>
 
-            <div className="p-3">
-              <span
-                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${e.tagColor}`}
-              >
-                {e.tag}
-              </span>
+              <div className="p-3">
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                    tagStyle[b.status] ?? "bg-[#EDE0D2] text-[#8B7E72]"
+                  }`}
+                >
+                  {b.status.toUpperCase()}
+                </span>
 
-              <h3 className="font-medium text-sm text-[#2B2622] mt-2">
-                {e.title}
-              </h3>
-              <p className="text-xs text-[#8B716A] mt-1">
-                {e.date} · {e.time}
-              </p>
+                <h3 className="mt-2 text-sm font-medium text-[#2B2622]">{b.workPostTitle}</h3>
+                <p className="mt-1 text-xs text-[#8B716A]">
+                  {b.customerName} ·{" "}
+                  {parseDateOnly(b.bookingDate).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

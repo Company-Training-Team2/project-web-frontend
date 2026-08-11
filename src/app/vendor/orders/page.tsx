@@ -1,22 +1,10 @@
-import VendorSidebar from "@/components/layout/VendorSidebar";
-import OrdersTopBar from "@/components/vendorn/orders/OrdersTopBar";
-import OrdersTabs from "@/components/vendorn/orders/OrdersTabs";
-import BookingRequestsList from "@/components/vendorn/orders/BookingRequestsList";
-import VendorBottomNav from "@/components/vendorn/orders/VendorBottomNav";
+import { redirect } from "next/navigation";
 
+// Legacy path — the sidebar's "Bookings" link (and the Figma frame it's
+// named after, "Booking Requests") both point at /vendor/bookings now,
+// where the real screen lives. This stays as a permanent redirect so any
+// old links/bookmarks to /vendor/orders still land somewhere real, same
+// pattern as the /dashboard -> /admin/dashboard redirects.
 export default function VendorOrdersPage() {
-  return (
-    <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
-      <div className="hidden md:block">
-        <VendorSidebar />
-      </div>
-
-      <div className="flex-1 min-w-0 relative">
-        <OrdersTopBar />
-        <OrdersTabs />
-        <BookingRequestsList />
-        <VendorBottomNav />
-      </div>
-    </div>
-  );
+  redirect("/vendor/bookings");
 }

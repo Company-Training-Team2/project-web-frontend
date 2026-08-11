@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Heart, Search, ShoppingBag, X } from "lucide-react";
 
 import Logo from "./Logo";
+import MobileNavDrawer from "./MobileNavDrawer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ export default function MarketplaceHeader({ className }: { className?: string })
             </button>
             <Logo href="/home" className="scale-90" />
             <div className="flex items-center gap-3">
+              <MobileNavDrawer />
               <button aria-label="Search" onClick={() => setMobileSearchOpen(true)} className="text-[#252323]">
                 <Search className="size-5" />
               </button>

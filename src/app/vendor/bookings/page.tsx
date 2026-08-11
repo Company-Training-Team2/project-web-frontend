@@ -1,5 +1,5 @@
-import VendorComingSoon from "@/components/vendorn/VendorComingSoon";
+import BookingsScreen from "@/components/vendorn/bookings/BookingsScreen";
 
 export default function VendorBookingsPage() {
-  return <VendorComingSoon title="Booking Requests" />;
+  return <BookingsScreen />;
 }

@@ -7,7 +7,7 @@ import { LayoutDashboard, Briefcase, ClipboardList, User } from "lucide-react";
 const items = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/vendor/dashboard" },
   { icon: Briefcase, label: "Services", href: "/vendor/services" },
-  { icon: ClipboardList, label: "Orders", href: "/vendor/orders" },
+  { icon: ClipboardList, label: "Bookings", href: "/vendor/bookings" },
   { icon: User, label: "Account", href: "/vendor/profile" },
 ];
 

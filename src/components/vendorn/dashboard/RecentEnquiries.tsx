@@ -1,36 +1,43 @@
-import { MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { ClipboardList } from "lucide-react";
+import { UpcomingVendorBooking } from "@/services/vendorPortal.service";
 
-const enquiries = [
-  { name: "Emma S.", message: "Interested in wedding package for..." },
-  { name: "James R.", message: "Do you offer corporate event..." },
-  { name: "Olivia K.", message: "Can we schedule a consultation..." },
-];
+// Was a hardcoded "recent enquiries" list — no messaging/enquiries backend
+// exists (Messages is a UI-only mock, see VendorMessagingScreen), so this
+// shows real upcoming bookings instead, which the dashboard endpoint
+// actually provides.
+export default function RecentEnquiries({ bookings }: { bookings: UpcomingVendorBooking[] }) {
+  const recent = bookings.slice(0, 3);
 
-export default function RecentEnquiries() {
   return (
-    <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-5 mt-6">
-      <h2 className="font-semibold text-sm text-[#2B2622] mb-4">
-        Recent Enquiries
-      </h2>
+    <div className="mt-6 rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-5">
+      <h2 className="mb-4 text-sm font-semibold text-[#2B2622]">Upcoming Bookings</h2>
 
-      <div className="space-y-3">
-        {enquiries.map((e) => (
-          <div key={e.name} className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#DCCFC0] shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[#2B2622] truncate">
-                {e.name}
-              </p>
-              <p className="text-xs text-[#8B716A] truncate">{e.message}</p>
+      {recent.length === 0 ? (
+        <p className="text-xs text-[#8B7E72]">No upcoming bookings yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {recent.map((b) => (
+            <div key={b.bookingId} className="flex items-center gap-3">
+              <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#A3391C]/10 text-xs font-bold text-[#A3391C]">
+                {b.customerName?.[0]?.toUpperCase() ?? "?"}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-[#2B2622]">{b.customerName}</p>
+                <p className="truncate text-xs text-[#8B716A]">{b.workPostTitle}</p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <button className="flex items-center justify-center gap-2 w-full mt-4 bg-[#A3391C] text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90">
-        <MessageSquare size={14} />
-        Start Message Center
-      </button>
+      <Link
+        href="/vendor/bookings"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#A3391C] py-2.5 text-sm font-medium text-white hover:opacity-90"
+      >
+        <ClipboardList size={14} />
+        View All Bookings
+      </Link>
     </div>
   );
 }

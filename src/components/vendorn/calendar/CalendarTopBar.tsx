@@ -1,6 +1,11 @@
+"use client";
+
 import { Search, Bell, HelpCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CalendarTopBar() {
+  const { user } = useAuth();
+
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] px-4 md:px-5 py-3">
       <div className="flex items-center gap-2 text-[#8B716A] flex-1 max-w-xs">
@@ -20,10 +25,7 @@ export default function CalendarTopBar() {
             <div className="w-8 h-8 rounded-full bg-[#DCCFC0]" />
             <div className="hidden md:block text-left">
               <p className="font-medium text-[#2B2622] leading-tight">
-                Julian Sterling
-              </p>
-              <p className="text-xs text-[#8B7E72] leading-tight">
-                Owner &amp; Founder
+                {user?.name || "Vendor"}
               </p>
             </div>
           </div>

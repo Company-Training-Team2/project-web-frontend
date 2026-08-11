@@ -1,37 +1,52 @@
 import { Star } from "lucide-react";
-import { CalendarCheck, MessageSquare, Settings } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { VendorDashboard } from "@/services/vendorPortal.service";
 
-export default function GreetingHeader() {
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+export default function GreetingHeader({ dashboard }: { dashboard: VendorDashboard }) {
+  const { user } = useAuth();
+
   return (
     <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-5 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-serif text-xl md:text-2xl font-bold text-[#2B2622]">
-            Good morning, Elite Florals
+          <h1 className="font-serif text-xl font-bold text-[#2B2622] md:text-2xl">
+            {greeting()}, {user?.name || "there"}
           </h1>
 
-          <div className="flex items-center gap-1 mt-1">
+          <div className="mt-1 flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((n) => (
               <Star
                 key={n}
                 size={13}
-                className="fill-[#B08D3E] text-[#B08D3E]"
+                className={
+                  n <= Math.round(dashboard.averageRating)
+                    ? "fill-[#B08D3E] text-[#B08D3E]"
+                    : "fill-transparent text-[#DCCFC0]"
+                }
               />
             ))}
-            <span className="text-xs text-[#8B716A] ml-1">4.9</span>
+            <span className="ml-1 text-xs text-[#8B716A]">
+              {dashboard.averageRating.toFixed(1)} ({dashboard.reviewCount} reviews)
+            </span>
           </div>
 
-          <p className="text-xs md:text-sm text-[#8B7E72] mt-2">
-            Established in the industry since 2019
+          <p className="mt-2 text-xs text-[#8B7E72] md:text-sm">
+            {dashboard.totalWorkPosts} active service{dashboard.totalWorkPosts === 1 ? "" : "s"} ·{" "}
+            {dashboard.totalBookings} total bookings
           </p>
         </div>
 
-        <div className="rounded-xl bg-[#EDE0D2] px-5 py-3 text-center md:text-left w-full md:w-auto">
-          <p className="text-[10px] text-[#8B7E72] uppercase tracking-wide">
-            Monthly Revenue
-          </p>
-          <p className="text-lg md:text-xl font-bold text-[#A3391C] mt-1">
-            EGP 32,450
+        <div className="w-full rounded-xl bg-[#EDE0D2] px-5 py-3 text-center md:w-auto md:text-left">
+          <p className="text-[10px] uppercase tracking-wide text-[#8B7E72]">This Month&apos;s Revenue</p>
+          <p className="mt-1 text-lg font-bold text-[#A3391C] md:text-xl">
+            EGP {dashboard.monthRevenue.toLocaleString()}
           </p>
         </div>
       </div>

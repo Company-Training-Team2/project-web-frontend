@@ -1,22 +1,36 @@
 import { Star } from "lucide-react";
+import { VendorDashboard } from "@/services/vendorPortal.service";
 
-export default function TestimonialCard() {
+// Was a hardcoded testimonial quote — the dashboard endpoint doesn't return
+// individual review text, only the aggregate rating/count, so this shows
+// that honestly instead of inventing a quote.
+export default function TestimonialCard({ dashboard }: { dashboard: VendorDashboard }) {
   return (
-    <div className="rounded-[16px] bg-[#1B2421] text-white p-5 md:p-6 mt-6">
-      <div className="flex items-center gap-1 mb-3">
+    <div className="mt-6 rounded-[16px] bg-[#1B2421] p-5 text-white md:p-6">
+      <div className="mb-3 flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
-          <Star key={n} size={13} className="fill-[#D97745] text-[#D97745]" />
+          <Star
+            key={n}
+            size={13}
+            className={
+              n <= Math.round(dashboard.averageRating)
+                ? "fill-[#D97745] text-[#D97745]"
+                : "fill-transparent text-white/30"
+            }
+          />
         ))}
+        <span className="ml-1 text-sm font-semibold">{dashboard.averageRating.toFixed(1)}</span>
       </div>
 
-      <p className="text-sm text-white/80 leading-relaxed">
-        &quot;Elite Florals exceeded all our expectations! Their attention
-        to detail and creative vision transformed our special day into
-        something truly extraordinary.&quot;
+      <p className="text-sm leading-relaxed text-white/80">
+        {dashboard.reviewCount > 0
+          ? `Rated across ${dashboard.reviewCount} client review${dashboard.reviewCount === 1 ? "" : "s"} — keep up the momentum by delivering every booking on your calendar.`
+          : "No reviews yet — your first completed booking is the first step toward building your reputation here."}
       </p>
 
-      <p className="text-sm font-semibold mt-4">Sophia Reed</p>
-      <p className="text-xs text-white/50">Client, June 2024</p>
+      <p className="mt-4 text-xs text-white/50">
+        {dashboard.completedBookings} completed booking{dashboard.completedBookings === 1 ? "" : "s"} to date
+      </p>
     </div>
   );
 }

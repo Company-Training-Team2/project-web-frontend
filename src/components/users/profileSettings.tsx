@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
   User,
   Bookmark,
   CreditCard,
@@ -101,7 +102,16 @@ export default function ProfileSettings() {
       <main className="p-3 md:p-6 min-w-0 overflow-x-hidden">
         <div className="mx-auto w-full max-w-6xl">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/home"
+                aria-label="Back to home"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+              <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+            </div>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input

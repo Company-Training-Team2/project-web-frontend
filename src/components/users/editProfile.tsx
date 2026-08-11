@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera } from "lucide-react";
 
-import { profileService } from "@/services/profile.service";
+import { getUserErrorMessage, userService } from "@/services/user.service";
 
 // Was rendering — the admin executive-portal nav, wrong for a
 // customer settings page (see profileSettings.tsx for the full note). This
@@ -40,7 +40,7 @@ export default function EditProfile() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const profile = await profileService.getProfile();
+        const profile = await userService.getMe();
 
         setFullName(profile.fullName ?? "Eleanor St. James");
         setEmail(profile.email ?? "eleanor.sj@eventhub.com");
@@ -71,8 +71,9 @@ export default function EditProfile() {
     console.log("Save Changes clicked");
 
     try {
-      // PUT /users/me
-      await profileService.updateProfile({
+      // PUT /users/me — returns the saved profile directly, no separate
+      // re-fetch needed.
+      const updatedProfile = await userService.updateMe({
         fullName,
         email,
         phoneNumber,
@@ -81,9 +82,6 @@ export default function EditProfile() {
       });
 
       console.log("Profile updated successfully");
-
-      // Fetch the latest data after update
-      const updatedProfile = await profileService.getProfile();
 
       setFullName(updatedProfile.fullName ?? "Eleanor St. James");
       setEmail(updatedProfile.email ?? "eleanor.sj@eventhub.com");
@@ -99,23 +97,9 @@ export default function EditProfile() {
 
       // Show success modal
       setShowSuccessModal(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to update profile:", error);
-
-      console.error(
-        "Status:",
-        error?.response?.status
-      );
-
-      console.error(
-        "Response:",
-        error?.response?.data
-      );
-
-      setErrorMessage(
-        error?.response?.data?.message ||
-          "Failed to update profile."
-      );
+      setErrorMessage(getUserErrorMessage(error, "Failed to update profile."));
     } finally {
       setIsSaving(false);
     }

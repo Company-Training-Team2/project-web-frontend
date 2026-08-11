@@ -60,7 +60,7 @@ export default function LandingPage() {
       .then(setStats)
       .catch(() => setStats(null)); // public endpoint down (e.g. DB unreachable) — hero/stats just fall back to copy below
     searchVendors({ pageSize: 3 })
-      .then(setVendors)
+      .then((result) => setVendors(result.vendors))
       .catch(() => setVendors([]));
   }, []);
 

@@ -148,12 +148,30 @@ function toMockReview(dto: ReviewSummaryDto, vendorId: string): MockReview {
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
-export async function searchVendors(filters: VendorSearchFilters): Promise<MockVendor[]> {
+// Real shape — GET /workposts/search returns PagedResultDto<WorkPostSummaryDto>
+// (Items/TotalCount/Page/PageSize/TotalPages), not a bare array. Older
+// deployments briefly returned a bare array, so both shapes are still
+// tolerated here.
+interface PagedWorkPostSummary {
+  items: WorkPostSummaryDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface VendorSearchResult {
+  vendors: MockVendor[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function searchVendors(filters: VendorSearchFilters): Promise<VendorSearchResult> {
+  const page = filters.page ?? 1;
+  const pageSize = filters.pageSize ?? 12;
   try {
-    const params: Record<string, string | number> = {
-      page: filters.page ?? 1,
-      pageSize: filters.pageSize ?? 12,
-    };
+    const params: Record<string, string | number> = { page, pageSize };
     // `filters.category` is one of our internal slug ids ("catering",
     // "venue"...) from MOCK_CATEGORIES — translate to the display name
     // before sending, since that's what the backend's own Category rows
@@ -166,15 +184,26 @@ export async function searchVendors(filters: VendorSearchFilters): Promise<MockV
       params.price_range = `${filters.minPrice ?? ""}-${filters.maxPrice ?? ""}`;
     }
 
-    const { data } = await apiClient.get<WorkPostSummaryDto[] | { items: WorkPostSummaryDto[] }>(
+    const { data } = await apiClient.get<WorkPostSummaryDto[] | PagedWorkPostSummary>(
       "/workposts/search",
       { params }
     );
-    const items = Array.isArray(data) ? data : data.items;
-    return items.map(summaryToMockVendor);
+
+    if (Array.isArray(data)) {
+      // Legacy bare-array shape — no real pagination metadata to report.
+      return { vendors: data.map(summaryToMockVendor), totalCount: data.length, page: 1, totalPages: 1 };
+    }
+    return {
+      vendors: data.items.map(summaryToMockVendor),
+      totalCount: data.totalCount,
+      page: data.page,
+      totalPages: data.totalPages,
+    };
   } catch {
-    // Backend not reachable — fall back to local fixtures so browsing still works.
-    return MOCK_VENDORS.filter((v) => {
+    // Backend not reachable — fall back to local fixtures so browsing still
+    // works. The fixture set is small enough to show in full on one page
+    // rather than fake additional pages that don't exist.
+    const vendors = MOCK_VENDORS.filter((v) => {
       const matchesCategory = !filters.category || v.categoryId === filters.category;
       const matchesKeyword =
         !filters.keyword ||
@@ -183,6 +212,7 @@ export async function searchVendors(filters: VendorSearchFilters): Promise<MockV
       const matchesRating = !filters.minRating || v.rating >= filters.minRating;
       return matchesCategory && matchesKeyword && matchesRating;
     });
+    return { vendors, totalCount: vendors.length, page: 1, totalPages: 1 };
   }
 }
 

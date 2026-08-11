@@ -33,29 +33,48 @@ function SearchResultsScreenInner() {
   });
   const [page, setPage] = useState(1);
   const [vendors, setVendors] = useState<MockVendor[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Real WorkPostController.Search is public and live — queried for real,
-  // with a fixture fallback baked into searchVendors() if it's unreachable.
+  // Real WorkPostController.Search is public and live — queried for real
+  // (page included, so the pager actually re-fetches instead of just
+  // relabeling the same 12 results), with a fixture fallback baked into
+  // searchVendors() if it's unreachable.
   useEffect(() => {
     let cancelled = false;
-    // A real network call kicking off on filter change, not derived state.
+    // A real network call kicking off on filter/page change, not derived state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     searchVendors({
       category: filters.category ?? undefined,
+      // filters.location is "Alexandria, Egypt" / "Cairo, Egypt" / "London,
+      // UK" (display labels for the dropdown) — the backend's own City rows
+      // are just the plain city name ("Alexandria"), so this was never
+      // actually filtering by city until now; take the part before the comma.
+      city: filters.location.split(",")[0].trim() || undefined,
       minRating: filters.minRating || undefined,
       maxPrice: filters.maxPrice || undefined,
-    }).then((results) => {
+      page,
+    }).then((result) => {
       if (!cancelled) {
-        setVendors(results);
+        setVendors(result.vendors);
+        setTotalCount(result.totalCount);
+        setTotalPages(result.totalPages);
         setIsLoading(false);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [filters.category, filters.minRating, filters.maxPrice]);
+  }, [filters.category, filters.location, filters.minRating, filters.maxPrice, page]);
+
+  // Any filter change invalidates the current page — starting a new filter
+  // from page 3 of the old results would silently skip real matches.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [filters.category, filters.location, filters.minRating, filters.maxPrice]);
 
   return (
     <div className="min-h-screen bg-[#faf6f0] pb-20 lg:pb-0">
@@ -81,10 +100,10 @@ function SearchResultsScreenInner() {
             <NoResultsFound />
           ) : (
             <>
-              <SearchResultsHeader count={vendors.length} />
+              <SearchResultsHeader count={totalCount} />
               {!/^\d+$/.test(vendors[0].id) ? <SampleDataNotice className="px-4 pb-2 sm:px-6 lg:px-8" /> : null}
               <VendorGrid vendors={vendors} />
-              <Pagination page={page} totalPages={12} onChange={setPage} />
+              {totalPages > 1 ? <Pagination page={page} totalPages={totalPages} onChange={setPage} /> : null}
             </>
           )}
         </main>

@@ -30,9 +30,9 @@ export default function BrowseVendorsScreen() {
     // A real network call kicking off on filter change, not derived state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
-    searchVendors({ category: category ?? undefined, keyword: search || undefined }).then((results) => {
+    searchVendors({ category: category ?? undefined, keyword: search || undefined }).then((result) => {
       if (!cancelled) {
-        setVendors(results);
+        setVendors(result.vendors);
         setIsLoading(false);
       }
     });

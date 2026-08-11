@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Tag, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Tag } from "lucide-react";
+import { categoriesService, Category } from "@/services/categories.service";
 
 const CHIP_COLORS = [
   "bg-[#f7dede] text-[#8a3b3b]",
@@ -10,21 +11,20 @@ const CHIP_COLORS = [
   "bg-[#e4e0da] text-[#54493f]",
 ];
 
-export default function VendorCategoriesCard({
-  categories,
-  onChange,
-}: {
-  categories: string[];
-  onChange: (next: string[]) => void;
-}) {
-  const [draft, setDraft] = useState("");
+// Real, callable endpoint — GET /api/categories (CategoriesController). No
+// create/update/delete endpoint exists for categories yet, so this shows the
+// live list read-only instead of a fake add/remove UI that couldn't persist
+// anything.
+export default function VendorCategoriesCard() {
+  const [categories, setCategories] = useState<Category[] | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  const addCategory = () => {
-    const name = draft.trim();
-    if (!name) return;
-    onChange([...categories, name]);
-    setDraft("");
-  };
+  useEffect(() => {
+    categoriesService
+      .getAll()
+      .then(setCategories)
+      .catch(() => setFailed(true));
+  }, []);
 
   return (
     <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-5">
@@ -33,36 +33,33 @@ export default function VendorCategoriesCard({
           <Tag size={18} className="text-[#A3391C]" />
           Vendor Categories
         </h3>
-        {/* No CategoryController exists on the backend yet — this whole card is local-only. */}
-        <button className="text-sm font-medium text-[#A3391C] hover:underline">Manage All →</button>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {categories.map((category, i) => (
-          <span
-            key={category}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
-          >
-            {category}
-            <button
-              aria-label={`Remove ${category}`}
-              onClick={() => onChange(categories.filter((c) => c !== category))}
-            >
-              <X size={13} />
-            </button>
-          </span>
-        ))}
-
-        <div className="flex items-center gap-1.5 rounded-full border border-dashed border-[#DCCFC0] px-3 py-1.5 text-sm text-[#8B716A]">
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCategory())}
-            placeholder="+ Add Category"
-            className="w-28 bg-transparent outline-none placeholder:text-[#8B716A]"
-          />
+      {failed ? (
+        <p className="mt-3 text-sm text-[#8B716A]">Couldn&apos;t load categories.</p>
+      ) : !categories ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {[...Array(4)].map((_, i) => (
+            <span key={i} className="h-7 w-20 animate-pulse rounded-full bg-[#DCCFC0]/60" />
+          ))}
         </div>
-      </div>
+      ) : categories.length === 0 ? (
+        <p className="mt-3 text-sm text-[#8B716A]">No categories yet.</p>
+      ) : (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {categories.map((category, i) => (
+            <span
+              key={category.id}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
+            >
+              {category.name}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-[11px] text-[#8B716A]">
+        Read-only — adding or removing categories isn&apos;t available yet.
+      </p>
     </div>
   );
 }

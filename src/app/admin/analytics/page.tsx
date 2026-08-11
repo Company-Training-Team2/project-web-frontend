@@ -5,8 +5,6 @@ import AdminTopBar from "@/components/admin/AdminTopBar";
 import AnalyticsHeader from "@/components/admin/analytics/AnalyticsHeader";
 import RevenueIntelligenceChart from "@/components/admin/analytics/RevenueIntelligenceChart";
 import VendorsAndCategory from "@/components/admin/analytics/VendorsAndCategory";
-import FunnelAndTraffic from "@/components/admin/analytics/FunnelAndTraffic";
-import GlobalFootprintChart from "@/components/admin/analytics/GlobalFootprintChart";
 import AnalyticsFooter from "@/components/admin/analytics/AnalyticsFooter";
 import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
 
@@ -22,8 +20,6 @@ export default function AnalyticsPage() {
         <AnalyticsHeader />
         <RevenueIntelligenceChart />
         <VendorsAndCategory />
-        <FunnelAndTraffic />
-        <GlobalFootprintChart />
         <AnalyticsFooter />
       </main>
     </div>

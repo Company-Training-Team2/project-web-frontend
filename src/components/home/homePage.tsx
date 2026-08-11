@@ -192,6 +192,12 @@ export default function LandingPage() {
               )}
             </p>
             <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-wider">
+              <Link href="/event/list" className="hover:underline">
+                My Events
+              </Link>
+              <Link href="/messages" className="hover:underline">
+                Messages
+              </Link>
               <Link href="/bookings" className="hover:underline">
                 {dashboard.pendingBookingsCount + dashboard.confirmedBookingsCount} Bookings
               </Link>

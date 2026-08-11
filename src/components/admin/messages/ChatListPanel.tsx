@@ -1,50 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, Plus } from "lucide-react";
+import { AdminConversationDto } from "@/services/admin.service";
 
-export type ChatPreview = {
-  id: string;
-  name: string;
-  tag: string;
-  date: string;
-  lastMessage: string;
-  unread?: boolean;
-};
+function initials(name: string) {
+  return name
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
-const chats: ChatPreview[] = [
-  {
-    id: "amara",
-    name: "Amara Okonkwo",
-    tag: "Wedding · May 2025",
-    date: "10:24 AM",
-    lastMessage: "The mood board looks incredible! We're leaning towards...",
-    unread: true,
-  },
-  {
-    id: "julian",
-    name: "Julian Ross",
-    tag: "Gala · Oct 2024",
-    date: "Yesterday",
-    lastMessage: "Can you confirm the final guest count by Monday?",
-  },
-  {
-    id: "elena",
-    name: "Elena Vance",
-    tag: "Graduation Soiree",
-    date: "Mar 12",
-    lastMessage: "I've attached the dietary requirements for our guests.",
-  },
-];
+function relativeDate(iso: string) {
+  const date = new Date(iso);
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  if (sameDay) return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 export default function ChatListPanel({
+  conversations,
+  isLoading,
   activeId,
   onSelect,
+  onNew,
 }: {
-  activeId: string;
-  onSelect: (id: string) => void;
+  conversations: AdminConversationDto[];
+  isLoading: boolean;
+  activeId: number | null;
+  onSelect: (id: number) => void;
+  onNew: () => void;
 }) {
   const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return conversations;
+    return conversations.filter(
+      (c) =>
+        c.subject.toLowerCase().includes(q) ||
+        c.userEmail.toLowerCase().includes(q) ||
+        (c.userDisplayName ?? "").toLowerCase().includes(q)
+    );
+  }, [conversations, search]);
 
   return (
     <div className="w-full md:w-72 border-r border-[#DCCFC0] bg-[#F6ECE0] flex flex-col shrink-0">
@@ -62,49 +67,60 @@ export default function ChatListPanel({
 
       <div className="flex items-center justify-between px-4 py-2">
         <span className="text-xs font-semibold text-[#8B7E72] uppercase tracking-wide">
-          Active Chats
+          Conversations
         </span>
-        <button className="text-[#8B716A] hover:text-[#2B2622]">
-          <SlidersHorizontal size={14} />
+        <button onClick={onNew} className="flex items-center gap-1 text-[#A3391C] hover:text-[#8a2f16]" title="New conversation">
+          <Plus size={14} />
+          <span className="text-xs font-medium">New</span>
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {chats.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => onSelect(c.id)}
-            className={`w-full text-left px-4 py-3 border-l-2 transition
-              ${
-                activeId === c.id
-                  ? "bg-[#EDE0D2] border-[#A3391C]"
-                  : "border-transparent hover:bg-[#EDE0D2]"
-              }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#DCCFC0] shrink-0" />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-medium text-sm text-[#2B2622] truncate">
-                    {c.name}
-                  </h3>
-                  <span className="text-[10px] text-[#8B7E72] shrink-0">
-                    {c.date}
-                  </span>
+        {isLoading ? (
+          <div className="space-y-1 p-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-[#DCCFC0]/40" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-[#8B7E72]">
+            {conversations.length === 0 ? "No conversations yet." : "No matches."}
+          </p>
+        ) : (
+          filtered.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => onSelect(c.id)}
+              className={`w-full text-left px-4 py-3 border-l-2 transition
+                ${activeId === c.id ? "bg-[#EDE0D2] border-[#A3391C]" : "border-transparent hover:bg-[#EDE0D2]"}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-[#DCCFC0] shrink-0 grid place-items-center text-[11px] font-semibold text-[#5A4E43]">
+                  {initials(c.userDisplayName || c.userEmail)}
                 </div>
-                <p className="text-xs text-[#8B716A] truncate">{c.tag}</p>
-                <p className="text-xs text-[#8B7E72] truncate mt-1">
-                  {c.lastMessage}
-                </p>
-              </div>
 
-              {c.unread && (
-                <span className="w-2 h-2 rounded-full bg-[#A3391C] mt-1 shrink-0" />
-              )}
-            </div>
-          </button>
-        ))}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-medium text-sm text-[#2B2622] truncate">
+                      {c.userDisplayName || c.userEmail}
+                    </h3>
+                    <span className="text-[10px] text-[#8B7E72] shrink-0">{relativeDate(c.updatedAt)}</span>
+                  </div>
+                  <p className="text-xs text-[#8B716A] truncate">{c.subject}</p>
+                  <p className="text-xs text-[#8B7E72] truncate mt-1">
+                    {c.lastMessageSnippet || "No messages yet."}
+                  </p>
+                </div>
+
+                {c.unreadCount > 0 && (
+                  <span className="mt-1 grid size-4 shrink-0 place-items-center rounded-full bg-[#A3391C] text-[9px] font-bold text-white">
+                    {c.unreadCount}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))
+        )}
       </div>
     </div>
   );

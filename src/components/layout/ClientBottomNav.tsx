@@ -4,11 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Compass, CalendarCheck, Heart, Plus } from "lucide-react";
 
+// "Bookings"/"Favorites" point at the real top-level /bookings and
+// /favorites pages (there's no /event/bookings or /event/favorites route —
+// those were dead links) since bookings/favorites aren't scoped to a
+// single event anyway.
 const items = [
   { icon: Home, label: "Home", href: "/event/dashboard" },
   { icon: Compass, label: "Browse", href: "/event/vendors" },
-  { icon: CalendarCheck, label: "Bookings", href: "/event/bookings" },
-  { icon: Heart, label: "Favorites", href: "/event/favorites" },
+  { icon: CalendarCheck, label: "Bookings", href: "/bookings" },
+  { icon: Heart, label: "Favorites", href: "/favorites" },
 ];
 
 export default function ClientBottomNav() {

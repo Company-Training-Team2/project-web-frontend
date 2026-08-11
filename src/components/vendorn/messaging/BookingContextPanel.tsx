@@ -1,95 +1,50 @@
-import { Calendar, MapPin, Users, FileImage } from "lucide-react";
-import { MockConversation } from "@/lib/mock/vendorMessagingScript";
+import Link from "next/link";
+import { Calendar, ExternalLink, User as UserIcon } from "lucide-react";
+import { Conversation } from "@/services/messaging.service";
 
-const timelineDot: Record<string, string> = {
-  completed: "bg-green-600",
-  upcoming: "bg-[#A3391C]",
-  planned: "bg-[#DCCFC0]",
-};
-
-export default function BookingContextPanel({ conversation }: { conversation: MockConversation }) {
+// Was a fully hardcoded "booking context" panel (package/deposit/timeline/
+// shared files) — Conversation has no booking, package, or file-sharing
+// concept on the backend (it's a plain direct-message thread, optionally
+// anchored to the WorkPost it started from), so this shows what's actually
+// real instead of a booking that may not even exist yet.
+export default function BookingContextPanel({ conversation }: { conversation: Conversation }) {
   return (
     <div className="h-full overflow-y-auto p-4 space-y-5">
       <div>
-        <p className="text-[10px] uppercase tracking-wide text-[#8B7E72]">Booking Reference</p>
-        <p className="font-serif text-lg font-bold text-[#2B2622]">{conversation.bookingReference}</p>
+        <p className="text-[10px] uppercase tracking-wide text-[#8B7E72]">Conversation With</p>
+        <p className="font-serif text-lg font-bold text-[#2B2622] flex items-center gap-2">
+          <UserIcon size={16} className="text-[#A3391C]" />
+          {conversation.otherPartyName}
+        </p>
+        <p className="text-xs text-[#8B7E72] mt-1">{conversation.otherPartyRole}</p>
       </div>
 
-      <div className="space-y-3 text-sm">
-        <div className="flex items-start gap-2.5">
-          <Calendar size={15} className="text-[#A3391C] mt-0.5 shrink-0" />
-          <div>
-            <p className="text-[10px] uppercase text-[#8B7E72]">Date &amp; Time</p>
-            <p className="text-[#2B2622] font-medium">{conversation.bookingDateTime}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2.5">
-          <MapPin size={15} className="text-[#A3391C] mt-0.5 shrink-0" />
-          <div>
-            <p className="text-[10px] uppercase text-[#8B7E72]">Location</p>
-            <p className="text-[#2B2622] font-medium">{conversation.location}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2.5">
-          <Users size={15} className="text-[#A3391C] mt-0.5 shrink-0" />
-          <div>
-            <p className="text-[10px] uppercase text-[#8B7E72]">Guest Count</p>
-            <p className="text-[#2B2622] font-medium">{conversation.guestCount}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-[#DCCFC0] bg-white p-3">
-        <p className="text-[10px] uppercase tracking-wide text-[#8B7E72] mb-2">Package Selected</p>
-        <div className="flex items-center justify-between">
-          <p className="font-semibold text-[#A3391C] text-sm">{conversation.package.name}</p>
-          <p className="font-bold text-[#2B2622] text-sm">{conversation.package.price}</p>
-        </div>
-        <p className="text-xs text-[#8B7E72] mt-1">{conversation.package.description}</p>
-
-        <div className="mt-3 h-1.5 rounded-full bg-[#EDE0D2] overflow-hidden">
-          <div
-            className="h-full bg-[#A3391C]"
-            style={{ width: `${conversation.package.percentPaid}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between mt-1.5 text-[10px] text-[#8B7E72]">
-          <span>Deposit paid {conversation.package.depositPaid}</span>
-          <span>{conversation.package.depositRemaining}</span>
-        </div>
-      </div>
-
-      {conversation.sharedFiles.length > 0 && (
+      <div className="flex items-start gap-2.5 text-sm">
+        <Calendar size={15} className="text-[#A3391C] mt-0.5 shrink-0" />
         <div>
-          <p className="text-[10px] uppercase tracking-wide text-[#8B7E72] mb-2">Shared Files</p>
-          <div className="grid grid-cols-2 gap-2">
-            {conversation.sharedFiles.map((f) => (
-              <div
-                key={f.name}
-                className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-[#DCCFC0] bg-white h-20 p-2 text-center"
-              >
-                <FileImage size={18} className="text-[#8B716A]" />
-                <p className="text-[10px] text-[#2B2622] truncate w-full">{f.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div>
-        <p className="text-[10px] uppercase tracking-wide text-[#8B7E72] mb-3">Event Timeline</p>
-        <div className="space-y-3">
-          {conversation.timeline.map((step) => (
-            <div key={step.title} className="flex gap-2.5">
-              <span className={`mt-1 size-2 rounded-full shrink-0 ${timelineDot[step.status]}`} />
-              <div>
-                <p className="text-xs font-semibold text-[#2B2622]">{step.title}</p>
-                <p className="text-[10px] text-[#8B7E72]">{step.note}</p>
-              </div>
-            </div>
-          ))}
+          <p className="text-[10px] uppercase text-[#8B7E72]">Started</p>
+          <p className="text-[#2B2622] font-medium">
+            {new Date(conversation.createdAt).toLocaleDateString(undefined, {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </p>
         </div>
       </div>
+
+      {conversation.workPostTitle && conversation.workPostId ? (
+        <div className="rounded-xl border border-[#DCCFC0] bg-white p-3">
+          <p className="text-[10px] uppercase tracking-wide text-[#8B7E72] mb-2">About This Listing</p>
+          <Link
+            href={`/vendors/${conversation.workPostId}`}
+            className="flex items-center justify-between gap-2 text-sm font-semibold text-[#A3391C] hover:underline"
+          >
+            <span className="truncate">{conversation.workPostTitle}</span>
+            <ExternalLink size={13} className="shrink-0" />
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

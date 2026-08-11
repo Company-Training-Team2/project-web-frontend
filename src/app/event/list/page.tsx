@@ -1,59 +1,80 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import ClientBottomNav from "@/components/layout/ClientBottomNav";
 import EventsTopBar from "@/components/client/events/EventsTopBar";
 import EventsHeader from "@/components/client/events/EventsHeader";
 import EventsSearchBar from "@/components/client/events/EventsSearchBar";
-import EventCard, { EventItem } from "@/components/client/events/EventCard";
+import EventCard from "@/components/client/events/EventCard";
 import CreateEventFab from "@/components/client/events/CreateEventFab";
-
-const events: EventItem[] = [
-  {
-    id: "1",
-    tag: "Wedding",
-    rating: "4.9",
-    name: "Eleanor & Julian's Gala",
-    date: "June 14, 2024",
-    guests: 180,
-    progress: 75,
-    spent: "$12,400",
-    budget: "$25,000",
-  },
-  {
-    id: "2",
-    tag: "Corporate Launch",
-    rating: "4.7",
-    name: "Aria Tech Summit",
-    date: "August 22, 2024",
-    guests: 450,
-    progress: 32,
-    spent: "$45,000",
-    budget: "$150,000",
-  },
-  {
-    id: "3",
-    tag: "Private Dinner",
-    rating: "5.0",
-    name: "The Golden Jubilee",
-    date: "Sept 05, 2024",
-    guests: 24,
-    progress: 90,
-    spent: "$7,080",
-    budget: "$8,000",
-  },
-];
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { eventService, EventSummary, EventDashboard } from "@/services/event.service";
 
 export default function MyEventsPage() {
+  useRequireAuth();
+
+  const [events, setEvents] = useState<EventSummary[] | null>(null);
+  const [dashboards, setDashboards] = useState<Record<number, EventDashboard>>({});
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    eventService
+      .getMyEvents()
+      .then(async (data) => {
+        setEvents(data);
+        setStatus("ready");
+        // Best-effort — a dashboard fetch failing for one event just means
+        // that card falls back to the plain totalBudget line.
+        const entries = await Promise.all(
+          data.map(async (e) => {
+            try {
+              return [e.id, await eventService.getDashboard(e.id)] as const;
+            } catch {
+              return null;
+            }
+          })
+        );
+        setDashboards(Object.fromEntries(entries.filter((e): e is [number, EventDashboard] => e !== null)));
+      })
+      .catch(() => setStatus("error"));
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!events) return [];
+    const q = search.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter((e) => e.name.toLowerCase().includes(q) || e.city.toLowerCase().includes(q));
+  }, [events, search]);
+
   return (
     <div className="min-h-screen bg-[#EDE0D2] pb-24 md:pb-8 relative">
       <EventsTopBar />
       <EventsHeader />
-      <EventsSearchBar />
+      <EventsSearchBar value={search} onChange={setSearch} />
 
       <div className="px-4 md:px-6 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {events.map((e) => (
-            <EventCard key={e.id} event={e} />
-          ))}
-        </div>
+        {status === "loading" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 animate-pulse rounded-[16px] bg-[#F6ECE0]" />
+            ))}
+          </div>
+        ) : status === "error" ? (
+          <p className="text-center text-sm text-[#8a3b3b] py-10">
+            Couldn&apos;t load your events. Check your connection and reload.
+          </p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-sm text-[#8B716A] py-10">
+            {events && events.length > 0 ? "No events match your search." : "No events yet — create your first one below."}
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((e) => (
+              <EventCard key={e.id} event={e} dashboard={dashboards[e.id]} />
+            ))}
+          </div>
+        )}
       </div>
 
       <CreateEventFab />

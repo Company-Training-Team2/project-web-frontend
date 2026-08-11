@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import Sidebar from "@/components/layout/Sidebar";
 import AdminTopBar from "@/components/admin/AdminTopBar";
+import AdminConnectionError from "@/components/admin/AdminConnectionError";
 import SettingsHeader from "@/components/admin/settings/SettingsHeader";
 import PlatformSettingsCard from "@/components/admin/settings/PlatformSettingsCard";
 import CommissionFinancialsCard from "@/components/admin/settings/CommissionFinancialsCard";
@@ -13,17 +14,17 @@ import BrandSettingsCard from "@/components/admin/settings/BrandSettingsCard";
 import SystemControlsCard from "@/components/admin/settings/SystemControlsCard";
 import RolesAccessCard from "@/components/admin/settings/RolesAccessCard";
 import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
+import { adminService, AdminSettingsDto, getAdminErrorMessage } from "@/services/admin.service";
 
-// No PlatformSettings/SystemSettings endpoint exists on the backend yet —
-// this whole screen is local state only. "Save Changes" just confirms the
-// values look right, nothing is persisted server-side.
-const DEFAULT_SETTINGS = {
-  siteName: "EventHub Global",
-  supportEmail: "concierge@eventhub.com",
+// Real, callable endpoint — GET/PUT /api/admin/settings, backed by a real
+// AdminSettings row. Only 7 fields exist there (see AdminSettingsDto):
+// commission %, tax %, max images/packages per listing, platform name, logo
+// URL, support email. Language, brand color, vendor-category CRUD, and the
+// system/2FA toggles the original mockup had have no backing field —
+// LOCAL_ONLY_DEFAULTS below covers exactly those, kept as local UI state
+// (each card discloses it isn't persisted) rather than faked as saved.
+const LOCAL_ONLY_DEFAULTS = {
   language: "English (US)",
-  commissionRate: 12.5,
-  taxRate: 8.0,
-  categories: ["Weddings", "Photography", "Catering", "Venues"],
   brandColor: "#a03818",
   systemAlerts: true,
   vendorRequestPings: true,
@@ -32,25 +33,62 @@ const DEFAULT_SETTINGS = {
 
 export default function AdminSettingsPage() {
   useRequireAdminAuth();
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+
+  const [settings, setSettings] = useState<AdminSettingsDto | null>(null);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
+  const [local, setLocal] = useState(LOCAL_ONLY_DEFAULTS);
   const [isSaving, setIsSaving] = useState(false);
 
-  const patch = (next: Partial<typeof DEFAULT_SETTINGS>) => setSettings((prev) => ({ ...prev, ...next }));
+  useEffect(() => {
+    adminService
+      .getSettings()
+      .then((data) => {
+        setSettings(data);
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
+  }, []);
 
-  const toggle = (key: "systemAlerts" | "vendorRequestPings" | "twoFactorRequired") =>
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const patch = (next: Partial<AdminSettingsDto>) =>
+    setSettings((prev) => (prev ? { ...prev, ...next } : prev));
 
-  const handleSave = () => {
+  const patchLocal = (next: Partial<typeof LOCAL_ONLY_DEFAULTS>) =>
+    setLocal((prev) => ({ ...prev, ...next }));
+
+  const toggleLocal = (key: "systemAlerts" | "vendorRequestPings" | "twoFactorRequired") =>
+    setLocal((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSave = async () => {
+    if (!settings) return;
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      const saved = await adminService.updateSettings({
+        commissionPercentage: settings.commissionPercentage,
+        taxPercentage: settings.taxPercentage,
+        maxImagesPerWorkPost: settings.maxImagesPerWorkPost,
+        maxPackagesPerWorkPost: settings.maxPackagesPerWorkPost,
+        platformName: settings.platformName,
+        platformLogoUrl: settings.platformLogoUrl,
+        supportEmail: settings.supportEmail,
+      });
+      setSettings(saved);
       toast.success("Settings saved.");
-    }, 600);
+    } catch (error) {
+      toast.error(getAdminErrorMessage(error, "Couldn't save settings. Please try again."));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
-    setSettings(DEFAULT_SETTINGS);
-    toast.info("Changes reset.");
+    adminService
+      .getSettings()
+      .then((data) => {
+        setSettings(data);
+        setLocal(LOCAL_ONLY_DEFAULTS);
+        toast.info("Changes reset.");
+      })
+      .catch(() => toast.error("Couldn't reload settings."));
   };
 
   return (
@@ -61,36 +99,58 @@ export default function AdminSettingsPage() {
         <AdminTopBar searchPlaceholder="Search system settings..." />
         <SettingsHeader onReset={handleReset} onSave={handleSave} isSaving={isSaving} />
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3 min-w-0">
-          <div className="space-y-6 lg:col-span-2 min-w-0">
-            <PlatformSettingsCard
-              siteName={settings.siteName}
-              supportEmail={settings.supportEmail}
-              language={settings.language}
-              onChange={patch}
-            />
-            <CommissionFinancialsCard
-              commissionRate={settings.commissionRate}
-              taxRate={settings.taxRate}
-              onChange={patch}
-            />
-            <VendorCategoriesCard
-              categories={settings.categories}
-              onChange={(categories) => patch({ categories })}
-            />
+        {status === "error" ? (
+          <div className="mt-6">
+            <AdminConnectionError label="platform settings" />
           </div>
+        ) : status === "loading" || !settings ? (
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-40 animate-pulse rounded-[16px] bg-[#DCCFC0]/50 lg:col-span-2" />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3 min-w-0">
+            <div className="space-y-6 lg:col-span-2 min-w-0">
+              <PlatformSettingsCard
+                platformName={settings.platformName}
+                supportEmail={settings.supportEmail}
+                maxImagesPerWorkPost={settings.maxImagesPerWorkPost}
+                maxPackagesPerWorkPost={settings.maxPackagesPerWorkPost}
+                language={local.language}
+                onChange={patch}
+                onChangeLocal={patchLocal}
+              />
+              <CommissionFinancialsCard
+                commissionRate={settings.commissionPercentage}
+                taxRate={settings.taxPercentage}
+                onChange={(patchValues) =>
+                  patch({
+                    commissionPercentage: patchValues.commissionRate ?? settings.commissionPercentage,
+                    taxPercentage: patchValues.taxRate ?? settings.taxPercentage,
+                  })
+                }
+              />
+              <VendorCategoriesCard />
+            </div>
 
-          <div className="space-y-6 min-w-0">
-            <BrandSettingsCard brandColor={settings.brandColor} onChange={patch} />
-            <SystemControlsCard
-              systemAlerts={settings.systemAlerts}
-              vendorRequestPings={settings.vendorRequestPings}
-              twoFactorRequired={settings.twoFactorRequired}
-              onToggle={toggle}
-            />
-            <RolesAccessCard />
+            <div className="space-y-6 min-w-0">
+              <BrandSettingsCard
+                logoUrl={settings.platformLogoUrl ?? ""}
+                brandColor={local.brandColor}
+                onChangeLogoUrl={(platformLogoUrl) => patch({ platformLogoUrl })}
+                onChangeBrandColor={(brandColor) => patchLocal({ brandColor })}
+              />
+              <SystemControlsCard
+                systemAlerts={local.systemAlerts}
+                vendorRequestPings={local.vendorRequestPings}
+                twoFactorRequired={local.twoFactorRequired}
+                onToggle={toggleLocal}
+              />
+              <RolesAccessCard />
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

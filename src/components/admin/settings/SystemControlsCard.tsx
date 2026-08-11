@@ -45,6 +45,10 @@ export default function SystemControlsCard({
         <ShieldAlert size={18} className="text-[#A3391C]" />
         System Controls
       </h3>
+      {/* No backing field on AdminSettingsDto for any of these three yet —
+          toggled locally so the control isn't dead, but never sent to the
+          server, and disclosed here rather than left to look persisted. */}
+      <p className="mt-1 text-[11px] text-[#8B716A]">Preview only — not saved to the server yet.</p>
 
       <div className="mt-2 divide-y divide-[#e5d9c8]">
         <ToggleRow

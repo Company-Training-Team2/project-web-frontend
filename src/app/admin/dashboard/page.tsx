@@ -5,7 +5,6 @@ import AdminTopBar from "@/components/admin/AdminTopBar";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import StatsCards from "@/components/admin/dashboard/StatsCards";
 import RevenueIntelligence from "@/components/admin/dashboard/RevenueIntelligence";
-import SystemHealthStatus from "@/components/admin/dashboard/SystemHealthStatus";
 import RecentVendorApprovals from "@/components/admin/dashboard/RecentVendorApprovals";
 import QuickActions from "@/components/admin/dashboard/QuickActions";
 import { useRequireAdminAuth } from "@/hooks/useRequireAdminAuth";
@@ -22,13 +21,8 @@ export default function DashboardPage() {
         <DashboardHeader />
         <StatsCards />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 min-w-0">
-          <div className="md:col-span-2 min-w-0">
-            <RevenueIntelligence />
-          </div>
-          <div className="min-w-0">
-            <SystemHealthStatus />
-          </div>
+        <div className="mt-6 min-w-0">
+          <RevenueIntelligence />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 min-w-0">

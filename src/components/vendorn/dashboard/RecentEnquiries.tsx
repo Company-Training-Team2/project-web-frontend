@@ -2,8 +2,9 @@ import Link from "next/link";
 import { ClipboardList } from "lucide-react";
 import { UpcomingVendorBooking } from "@/services/vendorPortal.service";
 
-// Was a hardcoded "recent enquiries" list — no messaging/enquiries backend
-// exists (Messages is a UI-only mock, see VendorMessagingScreen), so this
+// Was a hardcoded "recent enquiries" list — there's no per-listing
+// "enquiries" concept on the backend (Messages, see VendorMessagingScreen,
+// is real now but organized by conversation, not by enquiry), so this
 // shows real upcoming bookings instead, which the dashboard endpoint
 // actually provides.
 export default function RecentEnquiries({ bookings }: { bookings: UpcomingVendorBooking[] }) {

@@ -1,34 +1,17 @@
-import TaskItem, { Task } from "./TaskItem";
+import TaskItem from "./TaskItem";
+import { ChecklistItem } from "@/services/checklist.service";
 
-const tasks: Task[] = [
-  {
-    id: "1",
-    title: "Confirm Catering Menu",
-    detail:
-      "Finalize the selection for the main course and appetizers with 'The Golden Plate' team.",
-    due: "Sep 15",
-    priority: "High",
-    meta: "Vendors",
-  },
-  {
-    id: "2",
-    title: "Send Digital Invitations",
-    detail:
-      "Batch send the final version of the invitations to all confirmed guestlist contacts.",
-    due: "Tomorrow",
-    priority: "Medium",
-    meta: "Guests",
-  },
-  {
-    id: "3",
-    title: "Finalize Floral Arrangements",
-    detail: "",
-    due: "Oct 02",
-    priority: "Low",
-  },
-];
-
-export default function PendingTasksList() {
+export default function PendingTasksList({
+  tasks,
+  onToggle,
+  onDelete,
+  busyId,
+}: {
+  tasks: ChecklistItem[];
+  onToggle: (id: number) => void;
+  onDelete: (id: number) => void;
+  busyId: number | null;
+}) {
   return (
     <div className="px-4 md:px-6 pt-6">
       <div className="flex items-center justify-between mb-3">
@@ -36,11 +19,15 @@ export default function PendingTasksList() {
         <span className="text-xs text-[#8B716A]">({tasks.length})</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {tasks.map((t) => (
-          <TaskItem key={t.id} task={t} />
-        ))}
-      </div>
+      {tasks.length === 0 ? (
+        <p className="text-sm text-[#8B716A]">No pending tasks — add one below.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {tasks.map((t) => (
+            <TaskItem key={t.id} task={t} onToggle={onToggle} onDelete={onDelete} isBusy={busyId === t.id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

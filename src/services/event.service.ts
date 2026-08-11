@@ -35,15 +35,111 @@ export interface CreateEventPayload {
   notes?: string;
 }
 
+export type UpdateEventPayload = CreateEventPayload;
+
+// Real, callable endpoint — GET /api/events/{id}/dashboard. Backs the
+// Countdown/Budget/Task-Velocity/Guest-RSVP widgets on /event/dashboard.
+export interface EventDashboard {
+  eventId: number;
+  name: string;
+  daysUntilEvent: number;
+  totalBudget: number;
+  spentBudget: number;
+  remainingBudget: number;
+  totalTasks: number;
+  completedTasks: number;
+  pendingTasks: number;
+  confirmedGuests: number;
+  pendingGuests: number;
+  declinedGuests: number;
+}
+
+// Real, callable endpoint — GET /api/events/{id}/vendors.
+export interface EventVendor {
+  bookingId: number;
+  vendorProfileId: number;
+  vendorName: string;
+  serviceTitle: string;
+  bookingStatus: string;
+  amount: number;
+  bookingDate: string;
+}
+
+// Real, callable endpoints — POST/GET /api/events/{id}/guests, PATCH
+// /api/guests/{guestId}/rsvp, DELETE /api/guests/{guestId}.
+export interface Guest {
+  id: number;
+  eventId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  rsvpStatus: string;
+}
+
+export interface CreateGuestPayload {
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
 export const eventService = {
   async getMyEvents(): Promise<EventSummary[]> {
     const { data } = await apiClient.get<EventSummary[]>("/events");
     return data;
   },
 
+  async getEventById(id: number): Promise<EventSummary | null> {
+    try {
+      const { data } = await apiClient.get<EventSummary>(`/events/${id}`);
+      return data;
+    } catch {
+      return null;
+    }
+  },
+
   async createEvent(payload: CreateEventPayload): Promise<EventSummary> {
     const { data } = await apiClient.post<EventSummary>("/events", payload);
     return data;
+  },
+
+  async updateEvent(id: number, payload: UpdateEventPayload): Promise<EventSummary> {
+    const { data } = await apiClient.put<EventSummary>(`/events/${id}`, payload);
+    return data;
+  },
+
+  async deleteEvent(id: number): Promise<void> {
+    await apiClient.delete(`/events/${id}`);
+  },
+
+  async getDashboard(id: number): Promise<EventDashboard> {
+    const { data } = await apiClient.get<EventDashboard>(`/events/${id}/dashboard`);
+    return data;
+  },
+
+  async getVendors(id: number): Promise<EventVendor[]> {
+    const { data } = await apiClient.get<EventVendor[]>(`/events/${id}/vendors`);
+    return data;
+  },
+
+  async getGuests(id: number): Promise<Guest[]> {
+    const { data } = await apiClient.get<Guest[]>(`/events/${id}/guests`);
+    return data;
+  },
+
+  async addGuest(id: number, payload: CreateGuestPayload): Promise<Guest> {
+    const { data } = await apiClient.post<Guest>(`/events/${id}/guests`, payload);
+    return data;
+  },
+
+  /** status: Confirmed | Pending | Declined */
+  async updateGuestRsvp(guestId: number, status: string): Promise<void> {
+    await apiClient.patch(`/events/guests/${guestId}/rsvp`, JSON.stringify(status), {
+      headers: { "Content-Type": "application/json" },
+    });
+  },
+
+  async removeGuest(guestId: number): Promise<void> {
+    await apiClient.delete(`/events/guests/${guestId}`);
   },
 
   /** Returns the customer's most recent event, creating a minimal default

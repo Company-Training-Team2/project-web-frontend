@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SearchX } from "lucide-react";
+import { SearchX, WifiOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import VendorCard from "./VendorCard";
@@ -47,6 +47,13 @@ export default function NoResultsFound() {
         <div className="mb-6 text-center">
           <h3 className="font-serif text-[26px] font-bold text-[#af3718]">Continue Your Journey</h3>
           <p className="text-[13px] text-[#6d5d54]">Explore our most sought-after curation</p>
+          {/* Distinct from SampleDataNotice's copy — these are always sample
+              listings here (curated recommendations for an empty result),
+              not a stand-in for a failed live request. */}
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-[#8B7E72]">
+            <WifiOff size={12} className="shrink-0" />
+            Sample listings shown for inspiration — not live search results.
+          </p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recommendations.map((vendor) => (

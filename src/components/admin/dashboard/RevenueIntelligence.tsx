@@ -1,26 +1,45 @@
-import { ChevronDown } from "lucide-react";
+"use client";
 
+import { useEffect, useState } from "react";
+import { adminService, AdminReportDto } from "@/services/admin.service";
+import AdminConnectionError from "@/components/admin/AdminConnectionError";
+import MonthlyRevenueChart from "@/components/admin/shared/MonthlyRevenueChart";
+
+// Real, callable endpoint — GET /api/admin/reports/analytics. Was a dead
+// "Revenue Chart" placeholder box; now the real monthly gross-revenue /
+// commission series (same data source as the Reports page's Revenue
+// Dossier).
 export default function RevenueIntelligence() {
+  const [report, setReport] = useState<AdminReportDto | null>(null);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
+
+  useEffect(() => {
+    adminService
+      .getAnalyticsReport()
+      .then((data) => {
+        setReport(data);
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"));
+  }, []);
+
   return (
     <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-6 h-full">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="font-semibold text-[#2B2622]">
-            Revenue Intelligence
-          </h2>
-          <p className="text-xs md:text-sm text-[#8B716A] mt-1">
-            Weekly growth trends across all platform tiers.
-          </p>
+          <h2 className="font-semibold text-[#2B2622]">Revenue Intelligence</h2>
+          <p className="text-xs md:text-sm text-[#8B716A] mt-1">Monthly revenue and commission trend.</p>
         </div>
-
-        <button className="flex items-center gap-1 text-xs md:text-sm border border-[#DCCFC0] rounded-lg px-3 py-1.5 text-[#8B716A] hover:bg-[#EDE0D2] shrink-0">
-          This Week
-          <ChevronDown size={14} />
-        </button>
       </div>
 
-      <div className="mt-6 h-56 md:h-72 rounded-xl bg-[#EDE0D2] flex items-center justify-center text-[#8B716A] text-sm">
-        Revenue Chart
+      <div className="mt-6 h-56 md:h-72">
+        {status === "error" ? (
+          <AdminConnectionError label="the revenue trend" />
+        ) : status === "loading" || !report ? (
+          <div className="h-full animate-pulse rounded-xl bg-[#EDE0D2]" />
+        ) : (
+          <MonthlyRevenueChart data={report.monthlyRevenue} />
+        )}
       </div>
     </div>
   );

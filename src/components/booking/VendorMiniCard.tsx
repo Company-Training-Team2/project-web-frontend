@@ -1,9 +1,33 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Mail, Star } from "lucide-react";
+import { toast } from "sonner";
 import { getCategoryById } from "@/lib/mock/categories";
 import { MockVendor } from "@/lib/mock/types";
+import { messagingService } from "@/services/messaging.service";
 
 export default function VendorMiniCard({ vendor }: { vendor: MockVendor }) {
+  const router = useRouter();
   const category = getCategoryById(vendor.categoryId);
+  const [isMessaging, setIsMessaging] = useState(false);
+
+  // Real WorkPost ids are numeric; a mock fixture id ("v1"..) has no real
+  // listing to open a conversation about.
+  const canMessage = /^\d+$/.test(vendor.id);
+
+  const handleContact = async () => {
+    setIsMessaging(true);
+    try {
+      const conversation = await messagingService.createConversation({ workPostId: Number(vendor.id) });
+      router.push(`/messages?c=${conversation.id}`);
+    } catch {
+      toast.error("Couldn't start a conversation with this vendor.");
+    } finally {
+      setIsMessaging(false);
+    }
+  };
 
   return (
     <div className="rounded-[16px] border border-[#e5ded2] bg-white p-4">
@@ -31,11 +55,16 @@ export default function VendorMiniCard({ vendor }: { vendor: MockVendor }) {
         </div>
       </div>
 
-      {/* Mock — no real messaging endpoint yet. */}
-      <button className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-[8px] border border-[#e5ded2] text-[13px] font-medium text-[#252323] hover:bg-[#faf6f0]">
-        <Mail className="size-3.5" />
-        Contact Vendor
-      </button>
+      {canMessage ? (
+        <button
+          onClick={handleContact}
+          disabled={isMessaging}
+          className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-[8px] border border-[#e5ded2] text-[13px] font-medium text-[#252323] hover:bg-[#faf6f0] disabled:opacity-60"
+        >
+          <Mail className="size-3.5" />
+          {isMessaging ? "Starting…" : "Contact Vendor"}
+        </button>
+      ) : null}
     </div>
   );
 }

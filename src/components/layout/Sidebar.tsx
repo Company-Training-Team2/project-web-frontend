@@ -14,6 +14,8 @@ import {
   Plus,
   UserCircle,
   Briefcase,
+  MessageSquare,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +24,8 @@ const menu = [
   { icon: LayoutDashboard, title: "Dashboard", href: "/admin/dashboard" },
   { icon: Users, title: "User Management", href: "/admin/users" },
   { icon: Store, title: "Vendor Directory", href: "/admin/vendors" },
+  { icon: MessageSquare, title: "Messages", href: "/admin/messages" },
+  { icon: Wallet, title: "Payments", href: "/admin/payments" },
   { icon: BarChart3, title: "Analytics", href: "/admin/analytics" },
   { icon: FileText, title: "Reports", href: "/admin/reports" },
   { icon: Settings, title: "Settings", href: "/admin/settings" },

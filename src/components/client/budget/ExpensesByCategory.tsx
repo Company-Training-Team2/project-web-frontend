@@ -1,66 +1,47 @@
-import { Building2, Camera, Flower2, Shirt } from "lucide-react";
-import ExpenseCategoryCard, { ExpenseCategory } from "./ExpenseCategoryCard";
+import { Tag } from "lucide-react";
+import { CategoryBreakdownItem } from "@/services/expense.service";
 
-const categories: ExpenseCategory[] = [
-  {
-    id: "venue",
-    icon: Building2,
-    name: "Venue & Catering",
-    spent: "$18,000",
-    total: "$20,000",
-    percent: 90,
-    note: "Final payment due in 14 days",
-    color: "#A3391C",
-  },
-  {
-    id: "photography",
-    icon: Camera,
-    name: "Photography",
-    spent: "$4,800",
-    total: "$5,000",
-    percent: 96,
-    note: "Deposit paid · Portfolio confirmed",
-    color: "#B08D3E",
-  },
-  {
-    id: "floral",
-    icon: Flower2,
-    name: "Floral & Decor",
-    spent: "$3,200",
-    total: "$6,000",
-    percent: 53,
-    note: "Selection of centerpieces pending",
-    color: "#1F7A4D",
-  },
-  {
-    id: "attire",
-    icon: Shirt,
-    name: "Wedding Attire",
-    spent: "$5,800",
-    total: "$8,000",
-    percent: 72,
-    note: "Alterations appointment scheduled",
-    color: "#1F7A4D",
-  },
-];
+const COLORS = ["#A3391C", "#B08D3E", "#1F7A4D", "#3F5B4E", "#8B716A"];
 
-export default function ExpensesByCategory() {
+// Real data — GET /events/{id}/budget's CategoryBreakdown. Categories are
+// free-text on the backend (whatever the customer typed when adding an
+// expense), so a generic tag icon is used instead of guessing per-category
+// icons.
+export default function ExpensesByCategory({ categories }: { categories: CategoryBreakdownItem[] }) {
   return (
     <div className="px-4 md:px-6 pt-8">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-serif text-lg md:text-xl font-bold text-[#2B2622]">
-          Expenses by Category
-        </h2>
-        <button className="text-xs md:text-sm text-[#A3391C] font-medium whitespace-nowrap">
-          Edit Allocations
-        </button>
-      </div>
+      <h2 className="font-serif text-lg md:text-xl font-bold text-[#2B2622] mb-3">Expenses by Category</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {categories.map((c) => (
-          <ExpenseCategoryCard key={c.id} category={c} />
-        ))}
-      </div>
+      {categories.length === 0 ? (
+        <p className="text-sm text-[#8B716A]">No paid expenses yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {categories.map((c, i) => (
+            <div key={c.category} className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-[#EDE0D2] flex items-center justify-center text-[#A3391C] shrink-0">
+                    <Tag size={16} />
+                  </div>
+                  <h3 className="font-medium text-sm text-[#2B2622] truncate">{c.category}</h3>
+                </div>
+                <span className="text-sm font-semibold text-[#2B2622] shrink-0 whitespace-nowrap">
+                  EGP {c.amount.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="w-full bg-[#EDE0D2] rounded-full h-1.5 mt-3">
+                <div
+                  className="h-1.5 rounded-full"
+                  style={{ width: `${c.percentage}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                />
+              </div>
+
+              <p className="text-xs text-[#8B716A] mt-2">{c.percentage.toFixed(0)}% of spent budget</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

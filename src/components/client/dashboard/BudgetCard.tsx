@@ -1,5 +1,14 @@
-export default function BudgetCard() {
-  const percent = 75;
+// Real data — EventDashboard (GET /events/{id}/dashboard).
+export default function BudgetCard({
+  totalBudget,
+  spentBudget,
+  remainingBudget,
+}: {
+  totalBudget: number;
+  spentBudget: number;
+  remainingBudget: number;
+}) {
+  const percent = totalBudget > 0 ? Math.min(100, Math.round((spentBudget / totalBudget) * 100)) : 0;
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
 
@@ -10,14 +19,7 @@ export default function BudgetCard() {
       <div className="flex items-center gap-5 mt-4">
         <div className="relative w-24 h-24 shrink-0">
           <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="#EDE0D2"
-              strokeWidth="10"
-            />
+            <circle cx="50" cy="50" r={radius} fill="none" stroke="#EDE0D2" strokeWidth="10" />
             <circle
               cx="50"
               cy="50"
@@ -31,17 +33,13 @@ export default function BudgetCard() {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-lg font-bold text-[#A3391C]">
-              {percent}%
-            </span>
+            <span className="text-lg font-bold text-[#A3391C]">{percent}%</span>
           </div>
         </div>
 
         <div>
-          <p className="text-xl font-bold text-[#2B2622]">$18,450</p>
-          <p className="text-xs text-[#8B716A] mt-1">
-            Remaining of $25,000
-          </p>
+          <p className="text-xl font-bold text-[#2B2622]">EGP {remainingBudget.toLocaleString()}</p>
+          <p className="text-xs text-[#8B716A] mt-1">Remaining of EGP {totalBudget.toLocaleString()}</p>
         </div>
       </div>
     </div>

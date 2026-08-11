@@ -14,6 +14,14 @@ export interface SearchFilters {
   category: string | null;
   minRating: number;
   guestCount: number;
+  maxPrice: number;
+}
+
+const MIN_PRICE = 5000;
+const MAX_PRICE = 100000;
+
+function formatK(value: number) {
+  return `${Math.round(value / 1000)}K`;
 }
 
 export default function FiltersSidebar({
@@ -74,9 +82,20 @@ export default function FiltersSidebar({
 
       <div>
         <p className="mb-2 flex items-center justify-between text-[12px] font-bold uppercase tracking-[0.06em] text-[#6d5d54]">
-          Price Range <span className="text-[#af3718]">5k - 25k</span>
+          Price Range{" "}
+          <span className="text-[#af3718]">
+            {formatK(MIN_PRICE)} - {formatK(filters.maxPrice)}
+          </span>
         </p>
-        <input type="range" min={0} max={100} className="w-full accent-[#af3718]" />
+        <input
+          type="range"
+          min={MIN_PRICE}
+          max={MAX_PRICE}
+          step={1000}
+          value={filters.maxPrice}
+          onChange={(e) => onChange({ ...filters, maxPrice: Number(e.target.value) })}
+          className="w-full accent-[#af3718]"
+        />
       </div>
 
       <div>

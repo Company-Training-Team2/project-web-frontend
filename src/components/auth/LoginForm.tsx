@@ -163,7 +163,13 @@ function LoginFormInner() {
           </Link>
         </p>
 
-        <p className="absolute bottom-[22px] left-0 w-full text-center text-[11px] text-[#b2a79e] lg:bottom-[30px]">
+        {/* Was `absolute bottom-[…]`, pinned to the bottom of the whole
+            min-h-screen section regardless of how tall the content above it
+            got — on shorter viewports (or once SocialLogin started showing
+            two stacked buttons on Apple devices) it could land above/on top
+            of "Don't have an account" instead of below it. Flowing normally
+            after it guarantees the right order at any height. */}
+        <p className="mb-[22px] mt-[40px] text-center text-[11px] text-[#b2a79e] lg:mb-[30px] lg:mt-[56px]">
           © 2026 EventHub Concierge &nbsp;&nbsp; Privacy Policy &nbsp;&nbsp; Terms of Service
         </p>
       </div>

@@ -29,6 +29,7 @@ function SearchResultsScreenInner() {
     category: initialCategory,
     minRating: 0,
     guestCount: 150,
+    maxPrice: 25000,
   });
   const [page, setPage] = useState(1);
   const [vendors, setVendors] = useState<MockVendor[]>([]);
@@ -41,18 +42,20 @@ function SearchResultsScreenInner() {
     // A real network call kicking off on filter change, not derived state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
-    searchVendors({ category: filters.category ?? undefined, minRating: filters.minRating || undefined }).then(
-      (results) => {
-        if (!cancelled) {
-          setVendors(results);
-          setIsLoading(false);
-        }
+    searchVendors({
+      category: filters.category ?? undefined,
+      minRating: filters.minRating || undefined,
+      maxPrice: filters.maxPrice || undefined,
+    }).then((results) => {
+      if (!cancelled) {
+        setVendors(results);
+        setIsLoading(false);
       }
-    );
+    });
     return () => {
       cancelled = true;
     };
-  }, [filters.category, filters.minRating]);
+  }, [filters.category, filters.minRating, filters.maxPrice]);
 
   return (
     <div className="min-h-screen bg-[#faf6f0] pb-20 lg:pb-0">

@@ -22,11 +22,12 @@ import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const STEP_LABELS = ["Account Information", "Profile Setup", "Verification & Finish"];
 
-// Only businessName/ownerName/email/phone/password/confirmPassword map to
-// real RegisterRequest.cs fields (Email, Password, ConfirmPassword, Role,
-// FullName, PhoneNumber, BusinessName). country/city/categories are collected
-// for the UI flow but NOT part of RegisterRequest.cs yet, so they stay local
-// state below rather than in this validated schema.
+// businessName/ownerName/email/phone/password/confirmPassword map to real
+// RegisterRequest.cs fields (Email, Password, ConfirmPassword, Role,
+// FullName, PhoneNumber, BusinessName), and `categories` maps to
+// RegisterRequest.CategoryIds (sent in onSubmit below). country/city are
+// still collected for the UI flow but NOT part of RegisterRequest.cs yet.
+// All of it stays local state below rather than in this validated schema.
 const schema = z
   .object({
     businessName: z.string().min(2, "Business name is required"),
@@ -119,6 +120,7 @@ export default function VendorRegisterWizard() {
         role: "vendor",
         businessName: data.businessName,
         bioDescription: description || undefined,
+        categoryIds: categories.length > 0 ? categories.map(Number) : undefined,
       });
       toast.success("Vendor account details saved. Verify your email next.");
       router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);

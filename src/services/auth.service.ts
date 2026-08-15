@@ -20,6 +20,8 @@ export interface RegisterPayload {
   businessName?: string;
   /** Vendor-only — maps to RegisterRequest.cs's BioDescription field. */
   bioDescription?: string;
+  /** Vendor-only — up to 3 ids from categoriesService.getAll(). Maps to RegisterRequest.cs's CategoryIds field. */
+  categoryIds?: number[];
 }
 
 export interface ForgotPasswordPayload {
@@ -154,6 +156,7 @@ export const authService = {
       phoneNumber: payload.phone,
       businessName: payload.businessName,
       bioDescription: payload.bioDescription,
+      categoryIds: payload.categoryIds,
     });
     return data;
   },

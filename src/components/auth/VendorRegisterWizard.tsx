@@ -18,14 +18,13 @@ import PlanTierCard, { VENDOR_PLAN_TIERS } from "./PlanTierCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MOCK_CATEGORIES } from "@/lib/mock/categories";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const STEP_LABELS = ["Account Information", "Profile Setup", "Verification & Finish"];
 
 // Only businessName/ownerName/email/phone/password/confirmPassword map to
 // real RegisterRequest.cs fields (Email, Password, ConfirmPassword, Role,
-// FullName, PhoneNumber, BusinessName). category/country/city are collected
+// FullName, PhoneNumber, BusinessName). country/city/categories are collected
 // for the UI flow but NOT part of RegisterRequest.cs yet, so they stay local
 // state below rather than in this validated schema.
 const schema = z
@@ -64,7 +63,6 @@ export default function VendorRegisterWizard() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Step 1 extras — not part of RegisterRequest.cs yet.
-  const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
 
@@ -218,20 +216,6 @@ export default function VendorRegisterWizard() {
                     />
                   </FormField>
 
-                  <FormField id="category" label="Category">
-                    <select
-                      id="category"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="h-[48px] w-full rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px] text-[#1a1a1a]"
-                    >
-                      <option value="" disabled>Select Category...</option>
-                      {MOCK_CATEGORIES.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </FormField>
-
                   <FormField id="country" label="Country">
                     <Input
                       id="country"
@@ -307,7 +291,7 @@ export default function VendorRegisterWizard() {
                   />
                 </FormField>
 
-                <FormField id="categories" label="Primary Categories (select up to 3)">
+                <FormField id="categories" label="Which services do you offer? (choose up to 3)">
                   <CategoryChipSelect selected={categories} onChange={setCategories} />
                 </FormField>
 

@@ -33,21 +33,19 @@ export default function VendorSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-16 md:w-64 bg-[#1B2421] text-white flex flex-col justify-between min-h-screen shrink-0 transition-all">
+    // Hidden below md — VendorBottomNav (rendered by every /vendor/* screen)
+    // covers navigation on phones/small tablets instead. Previously this
+    // stayed visible as a 64px icon-only rail at every width, so mobile
+    // showed both the rail AND the bottom tab bar at once, eating ~17% of a
+    // 375px viewport for a redundant second nav.
+    <aside className="hidden md:flex md:w-64 bg-[#1B2421] text-white flex-col justify-between min-h-screen shrink-0">
       <div>
-        <div className="p-3 md:p-8">
-          <h2 className="font-bold text-xl hidden md:block">Maison Events</h2>
-          <p className="text-xs opacity-60 hidden md:block">
-            PREMIUM VENDOR
-          </p>
-          <div className="md:hidden flex justify-center">
-            <div className="w-8 h-8 rounded-lg bg-[#2B3632] flex items-center justify-center font-bold text-sm">
-              M
-            </div>
-          </div>
+        <div className="p-8">
+          <h2 className="font-bold text-xl">Maison Events</h2>
+          <p className="text-xs opacity-60">PREMIUM VENDOR</p>
         </div>
 
-        <nav className="space-y-2 px-2 md:px-4">
+        <nav className="space-y-2 px-4">
           {menu.map((item) => {
             const isActive = pathname?.startsWith(item.href);
 
@@ -55,8 +53,7 @@ export default function VendorSidebar() {
               <Link
                 key={item.title}
                 href={item.href}
-                title={item.title}
-                className={`flex items-center justify-center md:justify-start gap-3 w-full px-2 md:px-4 py-3 rounded-xl transition
+                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition
                 ${
                   isActive
                     ? "bg-[#2B3632] text-[#E48B58]"
@@ -64,22 +61,21 @@ export default function VendorSidebar() {
                 }`}
               >
                 <item.icon size={18} className="shrink-0" />
-                <span className="hidden md:inline">{item.title}</span>
+                <span>{item.title}</span>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="p-2 md:p-4 space-y-2">
+      <div className="p-4 space-y-2">
         {footerMenu.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (
             <Link
               key={item.title}
               href={item.href}
-              title={item.title}
-              className={`flex items-center justify-center md:justify-start gap-3 w-full px-2 md:px-4 py-3 rounded-xl transition
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition
               ${
                 isActive
                   ? "bg-[#2B3632] text-[#E48B58]"
@@ -87,7 +83,7 @@ export default function VendorSidebar() {
               }`}
             >
               <item.icon size={18} className="shrink-0" />
-              <span className="hidden md:inline">{item.title}</span>
+              <span>{item.title}</span>
             </Link>
           );
         })}

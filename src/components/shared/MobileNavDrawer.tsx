@@ -22,7 +22,10 @@ export default function MobileNavDrawer() {
 
   // Portal target must wait for the client mount — SSR has no document.body
   // to render into yet.
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   // Lock background scroll while the drawer is open, and let Escape close it.
   useEffect(() => {

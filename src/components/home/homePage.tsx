@@ -15,6 +15,7 @@ import { searchVendors } from "@/services/vendor.service";
 import { homeService, HomeDashboard } from "@/services/home.service";
 import SampleDataNotice from "@/components/shared/SampleDataNotice";
 import MobileNavDrawer from "@/components/shared/MobileNavDrawer";
+import BottomNav from "@/components/shared/BottomNav";
 import { MAIN_NAV_LINKS } from "@/components/shared/mainNavLinks";
 import { MockVendor } from "@/lib/mock/types";
 
@@ -117,8 +118,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] text-[#1A1A1A] selection:bg-[#A3391C] selection:text-white font-sans">
-      
+    // pb-20 reserves room for the fixed BottomNav below lg: (it hides at
+    // lg:, same cutoff as the desktop nav row above) so the footer isn't
+    // covered on phones/tablets.
+    <div className="min-h-screen bg-[#F5F0EB] text-[#1A1A1A] selection:bg-[#A3391C] selection:text-white font-sans pb-20 lg:pb-0">
+
       {/* --- 1. HEADER --- */}
       <header className="sticky top-0 z-50 border-b border-[#E3DCD2] bg-[#F5F0EB]/90 px-4 py-4 backdrop-blur-md sm:px-6 md:px-12">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
@@ -523,6 +527,8 @@ export default function LandingPage() {
            </div>
         </div>
       </footer>
+
+      <BottomNav active="home" />
     </div>
   );
 }

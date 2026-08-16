@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import Sidebar from "@/components/layout/Sidebar";
+import AdminBottomNav from "@/components/layout/AdminBottomNav";
 import AdminTopBar from "@/components/admin/AdminTopBar";
 import AdminConnectionError from "@/components/admin/AdminConnectionError";
 import ChatListPanel from "@/components/admin/messages/ChatListPanel";
@@ -51,6 +52,8 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
+    // One-time fetch on mount — a real network call, not derived state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadConversations();
   }, [loadConversations]);
 
@@ -66,6 +69,7 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (activeId !== null) loadMessages(activeId);
   }, [activeId, loadMessages]);
 
@@ -98,10 +102,12 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[#EDE0D2]">
+    <div className="h-[100dvh] flex overflow-hidden bg-[#EDE0D2]">
       <Sidebar />
 
-      <div className="flex-1 flex min-w-0">
+      {/* pb-16 reserves room for the fixed AdminBottomNav below md so it
+          never overlaps the chat panels. */}
+      <div className="flex-1 flex min-w-0 pb-16 md:pb-0">
         {listStatus === "error" ? (
           <div className="flex-1 p-6">
             <AdminTopBar searchPlaceholder="Search conversations..." />
@@ -133,6 +139,8 @@ export default function MessagesPage() {
       {isNewOpen ? (
         <NewConversationDialog onClose={() => setIsNewOpen(false)} onCreated={handleCreated} />
       ) : null}
+
+      <AdminBottomNav />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
+import AdminBottomNav from "@/components/layout/AdminBottomNav";
 import AdminTopBar from "@/components/admin/AdminTopBar";
 import UserManagementHeader from "@/components/admin/users/UserManagementHeader";
 import UsersTable, { Member } from "@/components/admin/users/UsersTable";
@@ -17,7 +18,7 @@ export default function UsersPage() {
     <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
       <Sidebar />
 
-      <main className="flex-1 p-3 md:p-6 min-w-0 overflow-x-hidden">
+      <main className="flex-1 p-3 pb-24 md:p-6 md:pb-8 min-w-0 overflow-x-hidden">
         <AdminTopBar searchPlaceholder="Search members, roles..." />
         <UserManagementHeader />
 
@@ -37,6 +38,8 @@ export default function UsersPage() {
           )}
         </div>
       </main>
+
+      <AdminBottomNav />
     </div>
   );
 }

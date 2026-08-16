@@ -12,6 +12,7 @@ import Link from "next/link";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { favoritesService, FavoriteItem } from "@/services/favorites.service";
+import BottomNav from "@/components/shared/BottomNav";
 
 // Real backend wiring — FavoritesController is genuinely live
 // (GET /favorites, POST /favorites/toggle). Previously this page used a
@@ -54,7 +55,10 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F1EB]">
-      <main className="mx-auto w-full max-w-4xl p-4 md:p-8">
+      {/* BottomNav only hides at lg: (see shared/BottomNav.tsx), so the
+          bottom-clearance padding must stay through md: too, not just
+          revert once md:p-8's shorthand would otherwise override it. */}
+      <main className="mx-auto w-full max-w-4xl p-4 pb-24 md:p-8 md:pb-24 lg:pb-8">
         {/* Top Header */}
         <div className="mb-8 flex items-center justify-between border-b border-[#E3DCD2] pb-4">
           <div className="flex items-center gap-4">
@@ -168,6 +172,8 @@ export default function FavoritesPage() {
           </div>
         )}
       </main>
+
+      <BottomNav active="favorites" />
     </div>
   );
 }

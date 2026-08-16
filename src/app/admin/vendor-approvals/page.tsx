@@ -8,9 +8,7 @@ import BottomNav from "@/components/admin/vendor-approvals/BottomNav";
 export default function VendorApprovalsPage() {
   return (
     <div className="min-h-screen bg-[#EDE0D2] flex overflow-x-hidden">
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
+      <Sidebar />
 
       <div className="flex-1 min-w-0 relative">
         <ApprovalsTopBar />

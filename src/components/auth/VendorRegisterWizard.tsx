@@ -36,6 +36,7 @@ const schema = z
     phone: z
       .string()
       .min(7, "Enter a valid phone number")
+      .max(20, "Phone number must be 20 characters or fewer")
       .regex(/^[+\d\s\-()]+$/, "Invalid phone number"),
     password: z
       .string()
@@ -213,6 +214,7 @@ export default function VendorRegisterWizard() {
                       type="tel"
                       placeholder="+1 (555) 000-0000"
                       autoComplete="tel"
+                      maxLength={20}
                       className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
                       {...register("phone")}
                     />

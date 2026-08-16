@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import AuthLayout from "@/components/auth/AuthLayout";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import ForgotPasswordDesktop from "@/components/auth/ForgotPasswordDesktop";
+
+export const metadata: Metadata = {
+  title: "Forgot Password - EventHub",
+};
 
 // This screen's Desktop Figma frame is a bespoke full-bleed layout, not the
 // shared AuthLayout sidebar treatment every other auth page uses. Rather

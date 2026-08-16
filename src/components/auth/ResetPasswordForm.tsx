@@ -9,8 +9,9 @@ import { Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
+import AuthCard from "./AuthCard";
+import FormField from "./FormField";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import PasswordInput from "./PasswordInput";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
@@ -61,68 +62,76 @@ export default function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="space-y-6 text-center">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "#EEF3EF" }}>
+      <AuthCard>
+        <div className="flex min-h-[420px] flex-col items-center justify-center px-[19px] text-center lg:px-[42px]">
+          <div className="flex size-16 items-center justify-center rounded-full bg-[#EEF3EF]">
             <CheckCircle2 size={32} color="#2F4A3E" />
           </div>
+          <h1 className="mt-5 font-serif text-[24px] font-bold text-[#252323]">Password updated!</h1>
+          <p className="mt-2 text-[14px] text-[#6d5d54]">Redirecting you to sign in...</p>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Password updated!</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Redirecting you to sign in...
-          </p>
-        </div>
-      </div>
+      </AuthCard>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Set new password</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Choose a strong password for your account
+    <AuthCard>
+      <div className="px-[19px] pb-[32px] pt-[49px] lg:px-[42px] lg:pt-[54px]">
+        <div className="space-y-[9px] text-center">
+          <h1 className="font-serif text-[30px] font-bold leading-none tracking-[-0.03em] text-[#252323]">
+            Set new password
+          </h1>
+          <p className="mx-auto max-w-[324px] text-[16px] leading-[1.35] text-[#6d5d54]">
+            Choose a strong password for your account.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-[17px] space-y-[15px]">
+          <FormField id="password" label="New password" error={errors.password?.message}>
+            <PasswordInput
+              id="password"
+              placeholder="Min. 8 characters"
+              autoComplete="new-password"
+              aria-invalid={!!errors.password}
+              className="h-[51px] rounded-[10px] border border-[#ded8d2] bg-[#fffdfb] px-[14px] text-[15px]"
+              {...register("password")}
+            />
+          </FormField>
+
+          <FormField id="confirmPassword" label="Confirm new password" error={errors.confirmPassword?.message}>
+            <PasswordInput
+              id="confirmPassword"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              aria-invalid={!!errors.confirmPassword}
+              className="h-[51px] rounded-[10px] border border-[#ded8d2] bg-[#fffdfb] px-[14px] text-[15px]"
+              {...register("confirmPassword")}
+            />
+          </FormField>
+
+          <Button
+            type="submit"
+            className="h-[52px] w-full rounded-[8px] bg-[#af3718] text-[14px] font-bold text-white hover:bg-[#9f3216]"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update password"
+            )}
+          </Button>
+        </form>
+
+        <p className="mt-[18px] text-center text-[14px] text-[#6d5d54]">
+          Remember your password?{" "}
+          <Link href="/login" className="font-medium text-[#b23a19] hover:underline">
+            Sign in
+          </Link>
         </p>
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="password">New password</Label>
-          <PasswordInput id="password" placeholder="Min. 8 characters" {...register("password")} />
-          {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="confirmPassword">Confirm new password</Label>
-          <PasswordInput id="confirmPassword" placeholder="••••••••" {...register("confirmPassword")} />
-          {errors.confirmPassword && (
-            <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full font-semibold"
-          disabled={isLoading}
-          style={{ backgroundColor: "#C1502E", color: "white" }}
-        >
-          {isLoading ? (
-            <><Loader2 size={16} className="mr-2 animate-spin" /> Updating...</>
-          ) : (
-            "Update password"
-          )}
-        </Button>
-      </form>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Remember your password?{" "}
-        <Link href="/login" className="font-medium hover:underline" style={{ color: "#C1502E" }}>
-          Sign in
-        </Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }

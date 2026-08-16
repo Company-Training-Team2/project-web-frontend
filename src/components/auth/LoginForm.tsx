@@ -169,8 +169,11 @@ function LoginFormInner() {
             two stacked buttons on Apple devices) it could land above/on top
             of "Don't have an account" instead of below it. Flowing normally
             after it guarantees the right order at any height. */}
-        <p className="mb-[22px] mt-[40px] text-center text-[11px] text-[#b2a79e] lg:mb-[30px] lg:mt-[56px]">
-          © 2026 EventHub Concierge &nbsp;&nbsp; Privacy Policy &nbsp;&nbsp; Terms of Service
+        <p className="mb-[22px] mt-[40px] text-center text-[13px] text-[#b2a79e] lg:mb-[30px] lg:mt-[56px]">
+          © 2026 EventHub Concierge &nbsp;&nbsp;
+          <Link href="/privacy" className="hover:underline hover:text-[#8d7f75]">Privacy Policy</Link>
+          &nbsp;&nbsp;
+          <Link href="/terms" className="hover:underline hover:text-[#8d7f75]">Terms of Service</Link>
         </p>
       </div>
     </AuthCard>

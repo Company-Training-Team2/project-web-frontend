@@ -34,7 +34,7 @@ export default function FormField({
         {action}
       </div>
       {children}
-      {error ? <p className="text-[11px] font-medium text-[#b23a19]">{error}</p> : null}
+      {error ? <p className="text-[13px] font-medium text-[#b23a19]">{error}</p> : null}
     </div>
   );
 }

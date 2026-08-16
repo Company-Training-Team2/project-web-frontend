@@ -28,13 +28,20 @@ export default function AuthLayout({
   return (
     <main
       className={cn(
-        "min-h-screen bg-[#1f1f1f] text-[#252323] sm:grid sm:place-items-center lg:bg-[#efe6da] lg:p-8",
+        // Was `lg:bg-… lg:p-…` only, so the whole 640–1023px tablet range fell
+        // through to the bare mobile styles below: a fixed 393px-wide card
+        // adrift on this dark #1f1f1f backdrop, with all the extra viewport
+        // width showing as plain empty/black space. Picking up the desktop
+        // treatment starting at `md` (768px) instead of `lg` (1024px) closes
+        // that gap.
+        "min-h-screen bg-[#1f1f1f] text-[#252323] sm:grid sm:place-items-center md:bg-[#efe6da] md:p-6 lg:p-8",
         wide && "lg:py-10"
       )}
     >
       <div
         className={cn(
           "relative min-h-screen w-full overflow-hidden bg-[#e9dfd1] sm:min-h-[852px] sm:w-[393px] sm:shadow-2xl",
+          "md:min-h-[700px] md:w-[680px] md:rounded-[22px] md:shadow-[0_30px_90px_rgba(47,35,24,0.18)]",
           wide
             ? "lg:min-h-0 lg:w-[min(1080px,calc(100vw-64px))] lg:rounded-[22px] lg:bg-[#e9dfd1] lg:shadow-[0_30px_90px_rgba(47,35,24,0.18)]"
             : "lg:grid lg:min-h-[760px] lg:w-[min(1120px,calc(100vw-64px))] lg:grid-cols-[1fr_438px] lg:rounded-[22px] lg:bg-[#e9dfd1] lg:shadow-[0_30px_90px_rgba(47,35,24,0.18)]"

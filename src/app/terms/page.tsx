@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Logo from "@/components/shared/Logo";
+import BackToPreviousLink from "@/components/shared/BackToPreviousLink";
 
 // Minimal placeholder — RegisterForm/VendorRegisterWizard link here from
 // their "Terms of Service" checkbox copy; this just needs to exist so that
@@ -13,9 +13,7 @@ export default function TermsPage() {
         <p className="text-[15px] leading-[1.6] text-[#6d5d54]">
           EventHub&apos;s Terms of Service are being finalized. Please check back soon.
         </p>
-        <Link href="/register-option" className="inline-block text-[14px] font-medium text-[#af3718] hover:underline">
-          ← Back
-        </Link>
+        <BackToPreviousLink className="inline-block text-[14px] font-medium text-[#af3718] hover:underline" />
       </div>
     </main>
   );

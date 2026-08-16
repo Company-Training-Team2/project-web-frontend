@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Mail, Phone, User } from "lucide-react";
+import { Check, Circle, Loader2, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
 import AuthCard from "./AuthCard";
@@ -15,15 +15,31 @@ import PasswordInput from "./PasswordInput";
 import SocialLogin from "./SocialLogin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
+const PASSWORD_REQUIREMENTS: { label: string; test: (v: string) => boolean }[] = [
+  { label: "At least 8 characters", test: (v) => v.length >= 8 },
+  { label: "One uppercase letter", test: (v) => /[A-Z]/.test(v) },
+  { label: "One lowercase letter", test: (v) => /[a-z]/.test(v) },
+  { label: "One number", test: (v) => /[0-9]/.test(v) },
+];
+
+// Max lengths mirror the backend column limits (CustomerProfileConfiguration.cs:
+// FullName HasMaxLength(100), PhoneNumber HasMaxLength(20)) so a too-long value
+// is rejected here with a clear message instead of failing registration with a
+// raw SQL truncation error.
 const schema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
+    name: z
+      .string()
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name must be 100 characters or fewer"),
     email: z.string().email("Enter a valid email address"),
     phone: z
       .string()
       .min(7, "Enter a valid phone number")
+      .max(20, "Phone number must be 20 characters or fewer")
       .regex(/^[+\d\s\-()]+$/, "Invalid phone number"),
     password: z
       .string()
@@ -45,8 +61,11 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+    watch,
+    formState: { errors, isValid },
+  } = useForm<FormData>({ resolver: zodResolver(schema), mode: "onChange" });
+
+  const passwordValue = watch("password") ?? "";
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -88,6 +107,7 @@ export default function RegisterForm() {
                 id="name"
                 placeholder="Team2Off@SpaceTech.com"
                 autoComplete="name"
+                maxLength={100}
                 aria-invalid={!!errors.name}
                 className="h-[51px] rounded-[10px] border border-[#ded8d2] bg-[#fffdfb] px-[14px] text-[15px]"
                 {...register("name")}
@@ -118,6 +138,7 @@ export default function RegisterForm() {
                 type="tel"
                 placeholder="+20 (1) 5577-88744"
                 autoComplete="tel"
+                maxLength={20}
                 aria-invalid={!!errors.phone}
                 className="h-[51px] rounded-[10px] border border-[#ded8d2] bg-[#fffdfb] px-[14px] text-[15px]"
                 {...register("phone")}
@@ -125,7 +146,7 @@ export default function RegisterForm() {
             </div>
           </FormField>
 
-          <FormField id="password" label="Password" error={errors.password?.message}>
+          <FormField id="password" label="Password">
             <PasswordInput
               id="password"
               placeholder="Min. 8 characters"
@@ -134,6 +155,25 @@ export default function RegisterForm() {
               className="h-[51px] rounded-[10px] border border-[#ded8d2] bg-[#fffdfb] px-[14px] text-[15px]"
               {...register("password")}
             />
+            {/* All requirements shown together from the start (not one-at-a-time
+                via the zod error message), each ticking green as it's met. */}
+            <ul className="grid grid-cols-1 gap-x-3 gap-y-[3px] pt-[2px] text-[13px] sm:grid-cols-2">
+              {PASSWORD_REQUIREMENTS.map(({ label, test }) => {
+                const met = test(passwordValue);
+                return (
+                  <li
+                    key={label}
+                    className={cn(
+                      "flex items-center gap-[6px]",
+                      met ? "text-[#2E9E68]" : "text-[#a79a90]"
+                    )}
+                  >
+                    {met ? <Check className="size-[13px] shrink-0" /> : <Circle className="size-[13px] shrink-0" />}
+                    {label}
+                  </li>
+                );
+              })}
+            </ul>
           </FormField>
 
           <div className="space-y-1 pt-[2px]">
@@ -157,14 +197,14 @@ export default function RegisterForm() {
               </label>
             </div>
             {errors.terms ? (
-              <p className="text-xs font-medium text-destructive">{errors.terms.message}</p>
+              <p className="text-[13px] font-medium text-destructive">{errors.terms.message}</p>
             ) : null}
           </div>
 
           <Button
             type="submit"
-            className="h-[52px] w-full rounded-[8px] bg-[#af3718] text-[14px] font-bold text-white hover:bg-[#9f3216]"
-            disabled={isLoading}
+            className="h-[52px] w-full rounded-[8px] bg-[#af3718] text-[14px] font-bold text-white hover:bg-[#9f3216] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={isLoading || !isValid}
           >
             {isLoading ? (
               <>

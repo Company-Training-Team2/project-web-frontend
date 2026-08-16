@@ -1,7 +1,12 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import AuthLayout from "@/components/auth/AuthLayout";
 import RegisterRouter from "@/components/auth/RegisterRouter";
 import LoadingScreen from "@/components/shared/LoadingScreen";
+
+export const metadata: Metadata = {
+  title: "Create Account - EventHub",
+};
 
 export default async function RegisterPage({
   searchParams,

@@ -127,13 +127,13 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-[#E3DCD2] bg-[#F5F0EB]/90 px-4 py-4 backdrop-blur-md sm:px-6 md:px-12">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <div className="flex shrink-0 items-center gap-3">
+            {/* Hamburger — opens the same links as the desktop nav row below,
+                since that <nav> is hidden below lg:. Sits before the logo
+                rather than with the action icons on the right. */}
+            <MobileNavDrawer />
             <Link href="/home" className="font-serif text-xl font-bold tracking-tight text-[#A3391C] sm:text-2xl lg:text-3xl">
               EventHub
             </Link>
-            {/* Hamburger — opens the same links as the desktop nav row below,
-                since that <nav> is hidden below lg:. Sits next to the logo
-                rather than with the action icons on the right. */}
-            <MobileNavDrawer />
           </div>
 
           <nav className="hidden items-center gap-8 lg:flex">

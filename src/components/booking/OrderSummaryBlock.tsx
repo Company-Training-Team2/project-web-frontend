@@ -53,16 +53,21 @@ export default function OrderSummaryBlock({
         {isPaying ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            Redirecting to InstaPay
+            Confirming your booking
           </>
         ) : (
           <>
             <Lock className="size-4" />
-            Pay with InstaPay
+            Confirm Booking (Demo Payment)
           </>
         )}
       </Button>
-      <p className="mt-2 text-center text-[11px] text-[#a79a90]">Secure payment powered by InstaPay.</p>
+      {/* No real payment gateway is wired up — see the note in
+          PaymentMethodSelector.tsx. Was "Secure payment powered by
+          InstaPay," which reads as a real integration. */}
+      <p className="mt-2 text-center text-[11px] text-[#a79a90]">
+        Demo checkout — no real payment is processed and no money moves.
+      </p>
     </div>
   );
 }

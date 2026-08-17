@@ -137,7 +137,7 @@ export default function CheckoutScreen() {
             <SectionEyebrow>Step 3 of 3</SectionEyebrow>
             <h1 className="font-serif text-[28px] font-bold text-[#252323] lg:text-[36px]">Checkout</h1>
             <p className="mt-1 text-[13px] text-[#6d5d54] lg:text-[14px]">
-              Review your reservation and complete your payment securely with InstaPay.
+              Review your reservation and confirm — this checkout is a demo, no real payment is processed.
             </p>
           </div>
         </div>

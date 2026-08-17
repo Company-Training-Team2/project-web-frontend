@@ -19,7 +19,12 @@ export default function PaymentMethodSelector({ method }: { method: MockPayment 
             IP
           </span>
           <div className="text-left">
-            <p className="text-[14px] font-bold text-[#252323]">InstaPay</p>
+            <p className="flex items-center gap-1.5 text-[14px] font-bold text-[#252323]">
+              InstaPay
+              <span className="rounded-full bg-[#a79a90] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-white">
+                Demo
+              </span>
+            </p>
             <p className="text-[12px] text-[#6d5d54]">
               Secure instant payment
               {method.isConnected ? <span className="text-[#2E9E68]"> • Connected Account</span> : null}
@@ -29,9 +34,13 @@ export default function PaymentMethodSelector({ method }: { method: MockPayment 
         <span className="grid size-6 place-items-center rounded-full bg-[#af3718] text-white">✓</span>
       </div>
 
+      {/* No real payment gateway is wired up (see the note above the
+          component) — this used to say "You'll be redirected to the
+          InstaPay app to complete your payment securely," which reads as a
+          real integration. Being upfront instead. */}
       <p className="mt-2 flex items-start gap-1.5 text-[12px] text-[#a79a90]">
         <Info className="mt-0.5 size-3.5 shrink-0" />
-        You&apos;ll be redirected to the InstaPay app to complete your payment securely.
+        This is a demo payment method — no real charge happens and no money moves.
       </p>
     </div>
   );

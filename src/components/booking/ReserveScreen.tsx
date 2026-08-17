@@ -93,7 +93,7 @@ function ReserveScreenInner() {
           <BudgetSummaryCard
             packageName={selectedPackage.name}
             guestCount={guestCount}
-            pricePerGuest={selectedPackage.pricePerGuest}
+            price={selectedPackage.price}
           />
         ) : null}
 

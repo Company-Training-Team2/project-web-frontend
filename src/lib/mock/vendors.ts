@@ -95,20 +95,24 @@ export const MOCK_VENDORS: MockVendor[] = [
   },
 ];
 
+// Flat package totals (see MockPackage's doc comment) — previously stored
+// as a per-guest rate and multiplied by guest count, so these are that old
+// per-guest figure times the guest count the package's own description
+// names, giving the same realistic scale without the multiplication bug.
 export const MOCK_PACKAGES: MockPackage[] = [
   {
     id: "p1",
     vendorId: "v1",
     name: "Intimate Tasting",
     description: "5-course seasonal menu • up to 30 guests",
-    pricePerGuest: 120,
+    price: 3600,
   },
   {
     id: "p2",
     vendorId: "v1",
     name: "Signature Banquet",
     description: "7-course + wine pairing • up to 120 guests",
-    pricePerGuest: 210,
+    price: 25200,
     badge: "MOST BOOKED",
   },
   {
@@ -116,7 +120,7 @@ export const MOCK_PACKAGES: MockPackage[] = [
     vendorId: "v1",
     name: "Grand Gala",
     description: "Full concierge • 120+ guests, bespoke menu",
-    pricePerGuest: 310,
+    price: 62000,
   },
 ];
 

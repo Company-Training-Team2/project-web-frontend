@@ -11,11 +11,11 @@ import { messagingService } from "@/services/messaging.service";
 export default function StickyBookBar({
   vendorId,
   packageId,
-  pricePerGuest,
+  price,
 }: {
   vendorId: string;
   packageId: string | null;
-  pricePerGuest: number;
+  price: number;
 }) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
@@ -45,7 +45,7 @@ export default function StickyBookBar({
     <div className="sticky bottom-0 z-20 flex items-center justify-between gap-3 border-t border-[#e5ded2] bg-white/95 px-5 py-4 backdrop-blur lg:px-10">
       <div>
         <p className="text-[11px] uppercase tracking-[0.06em] text-[#a79a90]">Starting from</p>
-        <p className="text-[18px] font-bold text-[#252323]">{pricePerGuest}/guest</p>
+        <p className="text-[18px] font-bold text-[#252323]">EGP {price.toLocaleString()}</p>
       </div>
       <div className="flex items-center gap-2">
         {canMessage ? (

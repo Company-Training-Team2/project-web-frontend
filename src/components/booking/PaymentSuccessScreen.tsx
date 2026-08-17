@@ -70,7 +70,7 @@ export default function PaymentSuccessScreen() {
 
   // Same formula as OrderSummaryBlock on Checkout, so this confirmation
   // shows the exact amount the customer just "paid" via InstaPay.
-  const { total } = calculateOrderTotal(draft.guestCount ?? 1, pkg?.pricePerGuest ?? vendor.price);
+  const { total } = calculateOrderTotal(draft.guestCount ?? 1, pkg?.price ?? vendor.price);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f1ea] px-6 py-16 text-center">

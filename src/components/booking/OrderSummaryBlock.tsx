@@ -5,7 +5,7 @@ import { calculateOrderTotal } from "@/lib/mock/pricing";
 interface OrderSummaryBlockProps {
   packageName: string;
   guestCount: number;
-  pricePerGuest: number;
+  price: number;
   onPay: () => void;
   isPaying: boolean;
 }
@@ -13,11 +13,11 @@ interface OrderSummaryBlockProps {
 export default function OrderSummaryBlock({
   packageName,
   guestCount,
-  pricePerGuest,
+  price,
   onPay,
   isPaying,
 }: OrderSummaryBlockProps) {
-  const { servicePrice, additionalServices, taxes, total } = calculateOrderTotal(guestCount, pricePerGuest);
+  const { servicePrice, additionalServices, taxes, total } = calculateOrderTotal(guestCount, price);
 
   return (
     <div className="rounded-[16px] border border-[#e5ded2] bg-white p-5">
@@ -25,7 +25,7 @@ export default function OrderSummaryBlock({
 
       <div className="mt-3 space-y-2 text-[14px] text-[#6d5d54]">
         <div className="flex justify-between">
-          <span>Service Price ({packageName} × {guestCount})</span>
+          <span>Service Price ({packageName}, {guestCount} guests)</span>
           <span>EGP {servicePrice.toLocaleString()}</span>
         </div>
         <div className="flex justify-between">

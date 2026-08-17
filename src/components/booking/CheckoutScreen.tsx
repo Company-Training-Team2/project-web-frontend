@@ -153,7 +153,7 @@ export default function CheckoutScreen() {
             <OrderSummaryBlock
               packageName={pkg?.name ?? "Package"}
               guestCount={draft.guestCount ?? 1}
-              pricePerGuest={pkg?.pricePerGuest ?? vendor.price}
+              price={pkg?.price ?? vendor.price}
               onPay={handlePay}
               isPaying={isPaying}
             />

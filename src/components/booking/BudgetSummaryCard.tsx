@@ -1,15 +1,20 @@
 export default function BudgetSummaryCard({
   packageName,
   guestCount,
-  pricePerGuest,
+  price,
   concierge = 1890,
 }: {
   packageName: string;
   guestCount: number;
-  pricePerGuest: number;
+  price: number;
   concierge?: number;
 }) {
-  const subtotal = guestCount * pricePerGuest;
+  // `price` is one flat amount for the whole package (see MockPackage's doc
+  // comment) — it does not scale with guest count. Was `guestCount * price`,
+  // which is how a 25,000 EGP venue package turned into a 3,000,000 EGP
+  // total for 120 guests. Guest count is still shown (it's what the package
+  // needs to cover), just not multiplied into the price.
+  const subtotal = price;
   const total = subtotal + concierge;
 
   return (
@@ -19,7 +24,7 @@ export default function BudgetSummaryCard({
       <div className="mt-3 space-y-2 text-[14px]">
         <div className="flex justify-between">
           <span className="text-white/80">
-            {packageName} × {guestCount}
+            {packageName} <span className="text-white/50">({guestCount} guests)</span>
           </span>
           <span>{subtotal.toLocaleString()}</span>
         </div>

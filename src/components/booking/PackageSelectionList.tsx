@@ -43,7 +43,7 @@ export default function PackageSelectionList({
                   <p className="text-[12px] text-[#6d5d54]">{pkg.description}</p>
                 </div>
               </div>
-              <p className="shrink-0 font-serif text-[16px] font-bold text-[#252323]">{pkg.pricePerGuest}</p>
+              <p className="shrink-0 font-serif text-[16px] font-bold text-[#252323]">{pkg.price.toLocaleString()}</p>
             </button>
           );
         })}

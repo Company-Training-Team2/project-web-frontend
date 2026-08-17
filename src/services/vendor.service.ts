@@ -131,7 +131,9 @@ function toMockPackage(dto: ServicePackageDto, vendorId: string): MockPackage {
     vendorId,
     name: dto.name,
     description: dto.description ?? dto.includes ?? "",
-    pricePerGuest: dto.price,
+    // dto.price is one flat amount for the whole package (see
+    // ServicePackage.cs — there's no per-guest field on it at all).
+    price: dto.price,
   };
 }
 

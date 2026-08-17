@@ -63,7 +63,7 @@ export default function VendorDetailsScreen({ vendorId }: { vendorId: string }) 
       <StickyBookBar
         vendorId={vendor.id}
         packageId={selectedPackageId}
-        pricePerGuest={selectedPackage?.pricePerGuest ?? vendor.price}
+        price={selectedPackage?.price ?? vendor.price}
       />
     </div>
   );

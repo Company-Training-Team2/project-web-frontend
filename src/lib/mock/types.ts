@@ -37,14 +37,19 @@ export interface MockVendor {
   credential?: string;
 }
 
-/** Stands in for the real `ServicePackage` entity (declared on the backend
- * domain but not yet migrated to the DB). */
+/** Mirrors the real `ServicePackage` entity: `Price` there is one flat/tiered
+ * amount for the whole package (see back-end/EventHub.Domain/Entities/
+ * ServicePackage.cs — "tiered pricing... replacing single-price
+ * constraints"), not a per-guest rate — there's no per-guest field on it at
+ * all. Was named `pricePerGuest` and multiplied by guest count in
+ * BudgetSummaryCard, which is how a 25,000 EGP venue package turned into a
+ * 3,000,000 EGP total for 120 guests. */
 export interface MockPackage {
   id: string;
   vendorId: string;
   name: string;
   description: string;
-  pricePerGuest: number;
+  price: number;
   badge?: "MOST BOOKED";
 }
 

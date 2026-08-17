@@ -39,7 +39,7 @@ export default function PackageTiers({
                 <p className="text-[13px] text-[#6d5d54]">{pkg.description}</p>
               </div>
               <p className="shrink-0 text-[14px] text-[#252323]">
-                from <span className="font-bold">{pkg.pricePerGuest}</span>/guest
+                EGP <span className="font-bold">{pkg.price.toLocaleString()}</span>
               </p>
             </div>
           </button>

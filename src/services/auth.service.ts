@@ -22,6 +22,16 @@ export interface RegisterPayload {
   bioDescription?: string;
   /** Vendor-only — up to 3 ids from categoriesService.getAll(). Maps to RegisterRequest.cs's CategoryIds field. */
   categoryIds?: number[];
+  /** Vendor-only, public — shown on the storefront. */
+  businessLogo?: File;
+  /** Vendor-only, public — shown on the storefront. */
+  coverImage?: File;
+  /** Vendor-only, private — reviewed by admin during KYC approval only. */
+  commercialRegistration?: File;
+  /** Vendor-only, private — reviewed by admin during KYC approval only. */
+  nationalId?: File;
+  /** Vendor-only, private — reviewed by admin during KYC approval only. */
+  businessLicense?: File;
 }
 
 export interface ForgotPasswordPayload {
@@ -146,17 +156,35 @@ export const authService = {
 
   // Registration never returns a session — the account can't sign in until the
   // email is verified via the OTP screen, so there is nothing to save yet.
+  //
+  // multipart/form-data (not JSON) because vendor registration attaches real
+  // files (logo, cover image, KYC documents) — see RegisterRequest.cs's
+  // [FromForm] binding. Customer registration has no files but still posts
+  // as a form; ASP.NET Core binds plain fields from a fileless multipart
+  // form exactly the same way.
   async register(payload: RegisterPayload): Promise<{ message: string }> {
-    const { data } = await apiClient.post<{ message: string }>("/auth/register", {
-      email: payload.email,
-      password: payload.password,
-      confirmPassword: payload.confirmPassword,
-      role: roleToBackend[payload.role],
-      fullName: payload.name,
-      phoneNumber: payload.phone,
-      businessName: payload.businessName,
-      bioDescription: payload.bioDescription,
-      categoryIds: payload.categoryIds,
+    const form = new FormData();
+    form.append("email", payload.email);
+    form.append("password", payload.password);
+    form.append("confirmPassword", payload.confirmPassword);
+    form.append("role", roleToBackend[payload.role]);
+    form.append("fullName", payload.name);
+    form.append("phoneNumber", payload.phone);
+    if (payload.businessName) form.append("businessName", payload.businessName);
+    if (payload.bioDescription) form.append("bioDescription", payload.bioDescription);
+    payload.categoryIds?.forEach((id) => form.append("categoryIds", String(id)));
+    if (payload.businessLogo) form.append("businessLogo", payload.businessLogo);
+    if (payload.coverImage) form.append("coverImage", payload.coverImage);
+    if (payload.commercialRegistration) form.append("commercialRegistration", payload.commercialRegistration);
+    if (payload.nationalId) form.append("nationalId", payload.nationalId);
+    if (payload.businessLicense) form.append("businessLicense", payload.businessLicense);
+
+    // Content-Type explicitly unset (not "multipart/form-data") so the browser
+    // fills in the multipart boundary itself — apiClient's default JSON
+    // Content-Type would otherwise ship on this request and the boundary-less
+    // header we'd set manually can't be parsed by the server.
+    const { data } = await apiClient.post<{ message: string }>("/auth/register", form, {
+      headers: { "Content-Type": undefined },
     });
     return data;
   },

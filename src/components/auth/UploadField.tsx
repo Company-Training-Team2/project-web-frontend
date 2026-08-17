@@ -4,20 +4,24 @@ import { useState } from "react";
 import { UploadCloud } from "lucide-react";
 import FormField from "./FormField";
 
-// Visual-only for now — there is no file upload endpoint on the backend yet,
-// so this collects a file locally but does not attempt to send it anywhere.
-// Promoted out of the old single-step VendorRegisterForm so both Step 1
-// (compliance docs) and Step 3 (ID/license) of VendorRegisterWizard share it.
+// Real upload: the selected File is reported to the parent via onFileChange
+// so VendorRegisterWizard can attach it to the multipart registration
+// request (RegisterRequest.cs's BusinessLogo/CoverImage/CommercialRegistration/
+// NationalId/BusinessLicense fields, saved by IFileStorageService). Previously
+// this only tracked the filename locally for display and never sent the file
+// anywhere — see git history for the old "visual-only" version.
 export default function UploadField({
   id,
   label,
   hint,
   accept,
+  onFileChange,
 }: {
   id: string;
   label: string;
   hint: string;
   accept: string;
+  onFileChange?: (file: File | null) => void;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
 
@@ -34,7 +38,11 @@ export default function UploadField({
           type="file"
           accept={accept}
           className="hidden"
-          onChange={(event) => setFileName(event.target.files?.[0]?.name ?? null)}
+          onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            setFileName(file?.name ?? null);
+            onFileChange?.(file);
+          }}
         />
       </label>
     </FormField>

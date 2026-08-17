@@ -58,7 +58,11 @@ type FormData = z.infer<typeof schema>;
  * & Finish"). Only the fields RegisterRequest.cs actually accepts are sent
  * to the real API on final submit — everything else here is collected for
  * the UI flow and kept in local component state, each marked with a
- * "Not part of RegisterRequest.cs yet" comment. */
+ * "Not part of RegisterRequest.cs yet" comment. The 5 file uploads (logo,
+ * cover image, commercial registration, national ID, business license) ARE
+ * sent for real as part of the multipart request — see authService.register
+ * and RegisterRequest.cs's "Vendor uploads" section. The image gallery field
+ * is the one exception, still visual-only (see its own comment below). */
 export default function VendorRegisterWizard() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -67,10 +71,13 @@ export default function VendorRegisterWizard() {
   // Step 1 extras — not part of RegisterRequest.cs yet.
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
+  const [commercialRegistrationFile, setCommercialRegistrationFile] = useState<File | null>(null);
+  const [businessLogoFile, setBusinessLogoFile] = useState<File | null>(null);
 
   // Step 2 — not part of RegisterRequest.cs yet.
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [experienceYears, setExperienceYears] = useState("");
   const [teamSize, setTeamSize] = useState("");
   const [startingPrice, setStartingPrice] = useState("");
@@ -80,6 +87,8 @@ export default function VendorRegisterWizard() {
   const [instagramUrl, setInstagramUrl] = useState("");
 
   // Step 3 — not part of RegisterRequest.cs yet.
+  const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
+  const [businessLicenseFile, setBusinessLicenseFile] = useState<File | null>(null);
   const [bankHolder, setBankHolder] = useState("");
   const [bankName, setBankName] = useState("");
   const [iban, setIban] = useState("");
@@ -122,6 +131,11 @@ export default function VendorRegisterWizard() {
         businessName: data.businessName,
         bioDescription: description || undefined,
         categoryIds: categories.length > 0 ? categories.map(Number) : undefined,
+        businessLogo: businessLogoFile ?? undefined,
+        coverImage: coverImageFile ?? undefined,
+        commercialRegistration: commercialRegistrationFile ?? undefined,
+        nationalId: nationalIdFile ?? undefined,
+        businessLicense: businessLicenseFile ?? undefined,
       });
       toast.success("Vendor account details saved. Verify your email next.");
       router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);
@@ -269,8 +283,15 @@ export default function VendorRegisterWizard() {
                   label="Commercial Registration"
                   hint="Upload PDF or JPG (Max 5MB)"
                   accept="application/pdf,image/jpeg"
+                  onFileChange={setCommercialRegistrationFile}
                 />
-                <UploadField id="businessLogo" label="Business Logo" hint="Upload High-Res Logo" accept="image/*" />
+                <UploadField
+                  id="businessLogo"
+                  label="Business Logo"
+                  hint="Upload High-Res Logo"
+                  accept="image/*"
+                  onFileChange={setBusinessLogoFile}
+                />
               </div>
             ) : null}
 
@@ -378,8 +399,19 @@ export default function VendorRegisterWizard() {
                 <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#b23a19]">
                   Portfolio Uploads
                 </p>
-                <UploadField id="coverImage" label="Cover Image" hint="Click to upload or drag and drop (PNG, JPG up to 10MB)" accept="image/*" />
-                <UploadField id="gallery" label="Image Gallery (up to 10)" hint="Add photos" accept="image/*" />
+                <UploadField
+                  id="coverImage"
+                  label="Cover Image"
+                  hint="Click to upload or drag and drop (PNG, JPG up to 10MB)"
+                  accept="image/*"
+                  onFileChange={setCoverImageFile}
+                />
+                {/* Not wired yet: a portfolio gallery needs its own multi-image
+                    table (like WorkPostImage, but for a VendorProfile with no
+                    WorkPost yet) that doesn't exist on the backend. Left as a
+                    visual-only field rather than silently dropping a selected
+                    file - flagging this honestly instead of pretending it saves. */}
+                <UploadField id="gallery" label="Image Gallery (up to 10) — coming soon" hint="Add photos" accept="image/*" />
               </div>
             ) : null}
 
@@ -398,8 +430,20 @@ export default function VendorRegisterWizard() {
                   1. Business Verification
                 </p>
                 <div className="grid gap-[14px] sm:grid-cols-2">
-                  <UploadField id="nationalId" label="National ID or Passport" hint="JPEG, PNG or PDF (Max 5MB)" accept="application/pdf,image/*" />
-                  <UploadField id="businessLicense" label="Business License" hint="JPEG, PNG or PDF (Max 5MB)" accept="application/pdf,image/*" />
+                  <UploadField
+                    id="nationalId"
+                    label="National ID or Passport"
+                    hint="JPEG, PNG or PDF (Max 5MB)"
+                    accept="application/pdf,image/*"
+                    onFileChange={setNationalIdFile}
+                  />
+                  <UploadField
+                    id="businessLicense"
+                    label="Business License"
+                    hint="JPEG, PNG or PDF (Max 5MB)"
+                    accept="application/pdf,image/*"
+                    onFileChange={setBusinessLicenseFile}
+                  />
                 </div>
 
                 <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#b23a19]">

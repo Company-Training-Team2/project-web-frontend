@@ -56,7 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.saveSession(data);
     setUser(data.user);
 
-    const fallback = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/";
+    // No explicit redirectTo (the common case — just visiting /login and
+    // signing in, not being bounced there mid-task) sends each role to its
+    // own home: vendors land on their portal, everyone else on the public
+    // Home page. An explicit redirectTo always wins — vendor-only
+    // destinations are still enforced by useRequireVendorAuth regardless of
+    // what a login URL claims.
+    const roleHome = data.user.role === "vendor" ? "/vendor/dashboard" : "/";
+    const fallback = redirectTo && redirectTo.startsWith("/") ? redirectTo : roleHome;
 
     // A customer whose profile is still missing the basics (never finished
     // /complete-profile after registering) gets routed there instead of

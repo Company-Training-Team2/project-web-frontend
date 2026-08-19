@@ -46,8 +46,8 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
 
   const [basicInfo, setBasicInfo] = useState<BasicInfoValue>(emptyBasicInfo);
   const [price, setPrice] = useState("");
-  const [minGuests, setMinGuests] = useState(""); // local-only, see PricingLogisticsCard
-  const [maxGuests, setMaxGuests] = useState(""); // local-only, see PricingLogisticsCard
+  const [minGuests, setMinGuests] = useState("");
+  const [maxGuests, setMaxGuests] = useState("");
   const [packages, setPackages] = useState<PackageDraft[]>([]);
 
   const [existingImages, setExistingImages] = useState<GalleryImage[]>([]);
@@ -87,6 +87,8 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
           address: data.address,
         });
         setPrice(String(data.price));
+        setMinGuests(data.minGuests != null ? String(data.minGuests) : "");
+        setMaxGuests(data.maxGuests != null ? String(data.maxGuests) : "");
         setExistingImages(
           data.images.map((img) => ({
             key: `existing-${img.id}`,
@@ -199,6 +201,8 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
           price: Number(price),
           city: basicInfo.city.trim(),
           address: basicInfo.address.trim(),
+          minGuests: minGuests.trim() ? Number(minGuests) : null,
+          maxGuests: maxGuests.trim() ? Number(maxGuests) : null,
           servicePackages: packages
             .filter((p) => p.name.trim() && Number(p.price) > 0)
             .map((p) => ({
@@ -222,6 +226,8 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
           price: Number(price),
           city: basicInfo.city.trim(),
           address: basicInfo.address.trim(),
+          minGuests: minGuests.trim() ? Number(minGuests) : null,
+          maxGuests: maxGuests.trim() ? Number(maxGuests) : null,
         });
         router.push("/vendor/services");
       }

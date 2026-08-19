@@ -103,6 +103,7 @@ export default function VendorProfileScreen() {
                 setSaveError(null);
               }}
               onSave={handleSave}
+              onLogoUploaded={setProfile}
               saving={saving}
               error={saveError}
             />

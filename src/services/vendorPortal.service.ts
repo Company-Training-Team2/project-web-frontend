@@ -56,6 +56,8 @@ export interface VendorWorkPost {
   price: number;
   city: string;
   address: string;
+  minGuests?: number | null;
+  maxGuests?: number | null;
   categoryName: string;
   approvalStatus: string;
   averageRating: number;
@@ -79,6 +81,8 @@ export interface CreateWorkPostPayload {
   price: number;
   city: string;
   address: string;
+  minGuests?: number | null;
+  maxGuests?: number | null;
   servicePackages?: CreateServicePackagePayload[];
 }
 
@@ -89,6 +93,8 @@ export interface UpdateWorkPostPayload {
   price?: number;
   city?: string;
   address?: string;
+  minGuests?: number | null;
+  maxGuests?: number | null;
 }
 
 // ─── Availability ───────────────────────────────────────────────────────────
@@ -157,6 +163,17 @@ export interface VendorAnalytics {
   workPostPerformance: WorkPostPerformance[];
 }
 
+// ─── Reviews ────────────────────────────────────────────────────────────────
+
+export interface VendorReview {
+  id: number;
+  customerName: string;
+  workPostTitle: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
 // ─── Profile ────────────────────────────────────────────────────────────────
 
 export interface VendorProfile {
@@ -173,12 +190,14 @@ export interface VendorProfile {
   accountNumber?: string;
 }
 
+// LogoUrl deliberately not here — the backend no longer accepts a free-text
+// URL string for it at all (was unvalidated, accepted any text). Use
+// uploadLogo() below instead, which sends a real image file.
 export interface UpdateVendorProfilePayload {
   businessName?: string;
   bioDescription?: string;
   phoneNumber?: string;
   city?: string;
-  logoUrl?: string;
   bankName?: string;
   accountName?: string;
   accountNumber?: string;
@@ -263,10 +282,19 @@ export const vendorPortalService = {
   async uploadServiceImages(id: number, files: File[]): Promise<VendorWorkPost> {
     const form = new FormData();
     files.forEach((file) => form.append("files", file));
+    // Was `"Content-Type": "multipart/form-data"` — a fixed string with no
+    // boundary. The browser only auto-generates and appends the required
+    // `; boundary=----...` when *no* Content-Type header is present on a
+    // FormData request; since one was already set here (even to the "right"
+    // looking value), it shipped boundary-less and the server couldn't
+    // parse the multipart body at all — every image upload failed before
+    // VendorService.UploadWorkPostImagesAsync ever saw a file. `undefined`
+    // (same fix as auth.service.ts's register()) lets the browser fill it
+    // in for real.
     const { data } = await apiClient.post<VendorWorkPost>(
       `/vendor/services/${id}/images`,
       form,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      { headers: { "Content-Type": undefined } }
     );
     return data;
   },
@@ -310,6 +338,11 @@ export const vendorPortalService = {
     return data;
   },
 
+  async getReviews(): Promise<VendorReview[]> {
+    const { data } = await apiClient.get<VendorReview[]>("/vendor/reviews");
+    return data;
+  },
+
   async getProfile(): Promise<VendorProfile> {
     const { data } = await apiClient.get<VendorProfile>("/vendor/profile");
     return data;
@@ -317,6 +350,19 @@ export const vendorPortalService = {
 
   async updateProfile(payload: UpdateVendorProfilePayload): Promise<VendorProfile> {
     const { data } = await apiClient.put<VendorProfile>("/vendor/profile", payload);
+    return data;
+  },
+
+  /** Replaces the storefront logo with an uploaded image — real file upload,
+   * not the old free-text "Logo URL" field. Content-Type left unset so the
+   * browser fills in the multipart boundary itself (see uploadServiceImages
+   * above for why a hardcoded "multipart/form-data" breaks this). */
+  async uploadLogo(file: File): Promise<VendorProfile> {
+    const form = new FormData();
+    form.append("file", file);
+    const { data } = await apiClient.post<VendorProfile>("/vendor/profile/logo", form, {
+      headers: { "Content-Type": undefined },
+    });
     return data;
   },
 

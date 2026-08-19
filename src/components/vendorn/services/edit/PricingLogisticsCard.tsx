@@ -73,8 +73,6 @@ export default function PricingLogisticsCard({
           )}
         </div>
 
-        {/* Min/Max Guests — not part of CreateWorkPostDto/UpdateWorkPostDto
-            yet, kept as local-only UI state (not sent to the backend). */}
         <div>
           <label className="text-xs text-[#8B7E72] mb-1 block">
             Min Guests

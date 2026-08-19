@@ -55,6 +55,35 @@ export interface VendorDecisionPayload {
   reason?: string;
 }
 
+// Real, callable endpoints — AdminController's GET /admin/workposts/pending,
+// GET /admin/workposts, PUT .../approve, PUT .../reject. A vendor's
+// individual listing (WorkPost) is created Pending — separate from the
+// vendor *account* approval above — and every public read path only
+// surfaces Approved ones, so this queue is what actually lets a new
+// listing go live.
+export interface AdminWorkPostDto {
+  id: number;
+  vendorProfileId: number;
+  vendorBusinessName: string;
+  categoryId: number;
+  categoryName: string;
+  title: string;
+  description: string;
+  price: number;
+  city: string;
+  address: string;
+  minGuests?: number;
+  maxGuests?: number;
+  approvalStatus: "Pending" | "Approved" | "Rejected";
+  primaryImageUrl?: string;
+  imageUrls: string[];
+  createdAt: string;
+}
+
+export interface WorkPostDecisionPayload {
+  reason?: string;
+}
+
 // Real, callable endpoints — AdminController's GET/PUT /admin/settings, backed
 // by a real AdminSettings row (auto-created on first read). Only these seven
 // fields exist on the backend; PlatformSettingsCard/CommissionFinancialsCard
@@ -295,6 +324,26 @@ export const adminService = {
     } catch {
       return { isLive: false, vendors: ADMIN_PENDING_VENDORS };
     }
+  },
+
+  async getPendingWorkPosts(): Promise<AdminWorkPostDto[]> {
+    const { data } = await apiClient.get<AdminWorkPostDto[]>("/admin/workposts/pending");
+    return data;
+  },
+
+  async getWorkPosts(approvalStatus?: string, page = 1, pageSize = 20): Promise<AdminWorkPostDto[]> {
+    const { data } = await apiClient.get<AdminWorkPostDto[]>("/admin/workposts", {
+      params: { approvalStatus, page, pageSize },
+    });
+    return data;
+  },
+
+  async approveWorkPost(id: number): Promise<void> {
+    await apiClient.put(`/admin/workposts/${id}/approve`);
+  },
+
+  async rejectWorkPost(id: number, payload?: WorkPostDecisionPayload): Promise<void> {
+    await apiClient.put(`/admin/workposts/${id}/reject`, payload);
   },
 
   async getAnalyticsReport(): Promise<AdminReportDto> {

@@ -16,6 +16,7 @@ import {
   Briefcase,
   MessageSquare,
   Wallet,
+  ClipboardCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +25,9 @@ const menu = [
   { icon: LayoutDashboard, title: "Dashboard", href: "/admin/dashboard" },
   { icon: Users, title: "User Management", href: "/admin/users" },
   { icon: Store, title: "Vendor Directory", href: "/admin/vendors" },
+  // WorkPost.ApprovalStatus queue — distinct from vendor *account* approval
+  // above, which never touches an individual listing's status.
+  { icon: ClipboardCheck, title: "Service Listings", href: "/admin/services" },
   { icon: MessageSquare, title: "Messages", href: "/admin/messages" },
   { icon: Wallet, title: "Payments", href: "/admin/payments" },
   { icon: BarChart3, title: "Analytics", href: "/admin/analytics" },

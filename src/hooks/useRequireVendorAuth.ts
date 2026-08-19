@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { notifyLoginRequired } from "@/lib/authToast";
 
 /** Client-side auth gate for the vendor portal (/vendor/*) — none of these
  * pages had any gating before this, so any visitor (logged out, a Customer,
@@ -18,6 +19,10 @@ export function useRequireVendorAuth() {
     // Wait for AuthContext to finish reading localStorage on mount — see the
     // comment in useRequireAuth.ts for why this matters.
     if (!isLoading && !isVendor) {
+      // Only the "not signed in at all" case gets the friendly nudge — a
+      // customer/admin account hitting a vendor-only page is a wrong-role
+      // bounce, not a "you forgot to log in" one.
+      if (!isAuthenticated) notifyLoginRequired();
       router.replace("/login");
     }
   }, [isLoading, isVendor, router]);

@@ -18,6 +18,7 @@ import MobileNavDrawer from "@/components/shared/MobileNavDrawer";
 import BottomNav from "@/components/shared/BottomNav";
 import { MAIN_NAV_LINKS } from "@/components/shared/mainNavLinks";
 import { MockVendor } from "@/lib/mock/types";
+import { notifyLoginRequired } from "@/lib/authToast";
 
 // --- بيانات وهمية للتصميم (تم تحديث روابط الصور لضمان ظهورها) ---
 
@@ -149,8 +150,21 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5 sm:gap-4">
-  {/* Heart Icon */}
-    <Link href="/favorites" className="text-[#5A524A] hover:text-[#A3391C] transition-colors">
+  {/* Heart Icon — guests go straight to /login instead of bouncing through
+      /favorites first (that page redirects them there anyway via
+      useRequireAuth, but skipping the detour avoids the flash-then-redirect).
+      A plain href wouldn't run the toast before the route changes, so this
+      one click is intercepted to show it first. */}
+    <Link
+      href={isAuthenticated ? "/favorites" : "/login?redirect=/favorites"}
+      onClick={(e) => {
+        if (isAuthenticated) return;
+        e.preventDefault();
+        notifyLoginRequired();
+        router.push("/login?redirect=/favorites");
+      }}
+      className="text-[#5A524A] hover:text-[#A3391C] transition-colors"
+    >
     <Heart className="h-5 w-5" />
     </Link>
 

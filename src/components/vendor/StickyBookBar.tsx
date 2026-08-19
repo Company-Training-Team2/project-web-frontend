@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { messagingService } from "@/services/messaging.service";
+import { notifyLoginRequired } from "@/lib/authToast";
 
 export default function StickyBookBar({
   vendorId,
@@ -27,6 +28,7 @@ export default function StickyBookBar({
 
   const handleMessage = async () => {
     if (!isAuthenticated) {
+      notifyLoginRequired();
       router.push(`/login?redirect=/vendors/${vendorId}`);
       return;
     }

@@ -12,6 +12,7 @@ import OrderSummaryBlock from "./OrderSummaryBlock";
 import SectionEyebrow from "@/components/shared/SectionEyebrow";
 import LoadingScreen from "@/components/shared/LoadingScreen";
 import { useAuth } from "@/context/AuthContext";
+import { notifyLoginRequired } from "@/lib/authToast";
 import { MockPackage, MockVendor } from "@/lib/mock/types";
 import { getVendorDetail } from "@/services/vendor.service";
 import { bookingService, getBookingErrorMessage } from "@/services/booking.service";
@@ -76,6 +77,7 @@ export default function CheckoutScreen() {
       // booking flow that requires an account. Preserve the draft (already
       // in sessionStorage) and send the guest to sign in, then straight
       // back here to finish paying.
+      notifyLoginRequired();
       router.push("/login?redirect=/booking/checkout");
       return;
     }

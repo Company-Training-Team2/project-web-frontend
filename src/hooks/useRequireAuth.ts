@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { notifyLoginRequired } from "@/lib/authToast";
 
 /** Client-side auth gate for transactional booking-flow pages (reserve,
  * checkout, success, my bookings, booking details, payment methods, AI
@@ -30,6 +31,7 @@ export function useRequireAuth() {
     if (isLoading) return;
 
     if (!isAuthenticated) {
+      notifyLoginRequired();
       router.replace("/login");
       return;
     }

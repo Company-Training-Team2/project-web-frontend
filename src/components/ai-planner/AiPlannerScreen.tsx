@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import AiPlannerHeader from "./AiPlannerHeader";
 import ChatBubble from "./ChatBubble";
@@ -12,7 +11,7 @@ import QuoteCallout from "./QuoteCallout";
 import InlineEventCard from "./InlineEventCard";
 import QuickActionPills from "./QuickActionPills";
 import ChatComposer from "./ChatComposer";
-import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { PlannerMessage, QUICK_ACTION_REPLIES } from "@/lib/mock/aiPlannerScript";
 import { AiChatHistory, sendAiChatMessage } from "@/services/ai.service";
 
@@ -46,12 +45,12 @@ function loadStoredConversation(): StoredConversation | null {
   }
 }
 
-// No useRequireAuth here — a guest can open the AI Planner screen itself.
-// An account is only required the moment they actually try to talk to it
-// (send a message or tap a quick action), gated below.
+// Gated at the page level now — a guest hitting /ai-planner (nav click or
+// direct URL) is sent straight to /login with a heads-up toast instead of
+// being allowed to browse the empty screen first and only getting stopped
+// once they try to send something.
 export default function AiPlannerScreen() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
+  useRequireAuth();
   // Starts empty (no scripted/mock conversation) unless a saved
   // conversation from the last 30 days is sitting in localStorage — see
   // loadStoredConversation/the persistence effect below.
@@ -71,12 +70,6 @@ export default function AiPlannerScreen() {
     const payload: StoredConversation = { savedAt: Date.now(), messages, history: history ?? [] };
     localStorage.setItem(CONVERSATION_STORAGE_KEY, JSON.stringify(payload));
   }, [messages, history]);
-
-  const requireAuthOrRedirect = () => {
-    if (isAuthenticated) return true;
-    router.push("/login?redirect=/ai-planner");
-    return false;
-  };
 
   const appendUserMessage = (userText: string) => {
     setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", kind: "text", text: userText }]);
@@ -108,12 +101,10 @@ export default function AiPlannerScreen() {
   };
 
   const handleQuickAction = (action: string) => {
-    if (!requireAuthOrRedirect()) return;
     void sendToAssistant(action, QUICK_ACTION_REPLIES[action] ?? "Noted — updating your plan now.");
   };
 
   const handleSend = (text: string) => {
-    if (!requireAuthOrRedirect()) return;
     void sendToAssistant(text, "Got it — I'll factor that into your event dossier and follow up shortly.");
   };
 

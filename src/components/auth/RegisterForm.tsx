@@ -57,6 +57,9 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") === "vendor" ? "vendor" : "customer";
   const [isLoading, setIsLoading] = useState(false);
+  // REG-CUS-013: one key per mount (i.e. per attempt at this form), reused
+  // across every submit of it — see RegisterPayload.idempotencyKey.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const {
     register,
@@ -77,6 +80,7 @@ export default function RegisterForm() {
         password: data.password,
         confirmPassword: data.password,
         role,
+        idempotencyKey,
       });
       toast.success("Account details saved. Verify your email next.");
       router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);

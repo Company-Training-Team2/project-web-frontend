@@ -13,9 +13,14 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { bookingService } from "@/services/booking.service";
 import { MockBooking } from "@/lib/mock/types";
 
+// Was ["Confirmed", "Pending"] / ["Confirmed"] — "Confirmed" hasn't been a
+// real BookingStatus value since it was renamed to "Accepted" (audit Module
+// 8), and "Paid" wasn't listed anywhere either, so any real
+// vendor-accepted or paid booking matched none of these tabs and just
+// disappeared from My Bookings entirely.
 const TAB_TO_STATUS: Record<BookingTab, MockBooking["status"][]> = {
-  Upcoming: ["Confirmed", "Pending"],
-  Ongoing: ["Confirmed"],
+  Upcoming: ["Accepted", "Paid", "Pending"],
+  Ongoing: ["Accepted", "Paid"],
   Completed: ["Completed"],
   Cancelled: ["Cancelled", "Rejected"],
 };

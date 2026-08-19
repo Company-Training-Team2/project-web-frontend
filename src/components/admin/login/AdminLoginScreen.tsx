@@ -25,11 +25,8 @@ type FormData = z.infer<typeof schema>;
 /**
  * Admin Portal login (Desktop Figma frame). Wired to the real backend:
  * POST /auth/admin/login, and — if that response says requiresMfa — POST
- * /auth/admin/mfa/verify. The verify endpoint is a documented stub on the
- * backend today (AuthController.cs: "MFA verification not yet
- * implemented.", never issues a token), so admin accounts with MFA enabled
- * can't fully sign in yet — that failure is surfaced honestly via toast
- * rather than faked.
+ * /auth/admin/mfa/verify, which validates the code against the account's
+ * MfaSecret and returns a real session on success.
  *
  * "Remember this workstation for 30 days" has no backend field
  * (AdminLoginRequest.cs is just Email/Password) — it's collected but not
@@ -70,10 +67,10 @@ export default function AdminLoginScreen() {
         return;
       }
 
-      const verify = await authService.verifyAdminMfa({ email: result.email, code: data.code });
-      // Backend stub — never issues a token yet, so there's nothing to save.
-      // Surface its real message rather than pretending this succeeded.
-      toast.info(verify.message);
+      const session = await authService.verifyAdminMfa({ email: result.email, code: data.code });
+      authService.saveSession(session);
+      toast.success("Access authorized.");
+      router.push("/admin/dashboard");
     } catch (error: unknown) {
       toast.error(getAuthErrorMessage(error, "Authorization failed. Check your credentials."));
     } finally {

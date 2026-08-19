@@ -8,6 +8,7 @@ export default function PreviewCard({
   submitting,
   onSubmit,
   error,
+  isFormInvalid,
 }: {
   title: string;
   price: string;
@@ -16,6 +17,11 @@ export default function PreviewCard({
   submitting: boolean;
   onSubmit: () => void;
   error?: string | null;
+  // Only dims the button (never blocks the click) — a hard `disabled` would
+  // stop onSubmit from ever firing, which is exactly what reveals the
+  // field-level errors on the first attempt. Communicates "not ready yet"
+  // without creating a dead button.
+  isFormInvalid: boolean;
 }) {
   const displayPrice = Number(price) > 0 ? `EGP ${Number(price).toLocaleString()}` : "EGP —";
 
@@ -39,7 +45,10 @@ export default function PreviewCard({
           type="button"
           onClick={onSubmit}
           disabled={submitting}
-          className="flex-1 flex items-center justify-center gap-2 text-xs font-medium bg-[#A3391C] text-white rounded-lg py-2 hover:opacity-90 disabled:opacity-60"
+          aria-disabled={isFormInvalid}
+          className={`flex-1 flex items-center justify-center gap-2 text-xs font-medium bg-[#A3391C] text-white rounded-lg py-2 hover:opacity-90 disabled:opacity-60 ${
+            isFormInvalid ? "opacity-60" : ""
+          }`}
         >
           {submitting && <Loader2 size={14} className="animate-spin" />}
           {mode === "create" ? "Submit for Review" : "Save Changes"}

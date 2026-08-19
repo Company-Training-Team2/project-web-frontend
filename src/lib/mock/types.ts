@@ -64,7 +64,11 @@ export interface MockReview {
 }
 
 /** Field names + status vocabulary copied from the real Booking entity /
- * BookingStatus enum (Pending/Confirmed/Completed/Cancelled/Rejected). The
+ * BookingStatus enum (Pending/Accepted/Completed/Cancelled/Rejected/Paid —
+ * "Confirmed" was renamed to "Accepted" per audit Module 8, and this type
+ * had gone stale against that rename, plus never had "Paid" at all: real
+ * accepted/paid bookings silently matched none of the "Confirmed" checks
+ * throughout the booking UI and vanished from My Bookings entirely). The
  * "Upcoming/Ongoing/Completed/Cancelled" tabs on My Bookings are a UI-layer
  * mapping done in the component, not part of this data shape. */
 export interface MockBooking {
@@ -73,7 +77,7 @@ export interface MockBooking {
   packageId: string;
   bookingDate: string;
   guestCount: number;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected";
+  status: "Pending" | "Accepted" | "Paid" | "Completed" | "Cancelled" | "Rejected";
   totalPrice: number;
   quantity: number;
   notes?: string;

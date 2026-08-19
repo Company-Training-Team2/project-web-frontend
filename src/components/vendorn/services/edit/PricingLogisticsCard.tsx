@@ -22,6 +22,7 @@ export default function PricingLogisticsCard({
   onMinGuestsChange,
   maxGuests,
   onMaxGuestsChange,
+  showErrors,
 }: {
   mode: "create" | "edit";
   price: string;
@@ -33,6 +34,7 @@ export default function PricingLogisticsCard({
   onMinGuestsChange: (value: string) => void;
   maxGuests: string;
   onMaxGuestsChange: (value: string) => void;
+  showErrors: boolean;
 }) {
   const updatePackage = (index: number, patch: Partial<PackageDraft>) => {
     onPackagesChange(packages.map((p, i) => (i === index ? { ...p, ...patch } : p)));
@@ -41,6 +43,10 @@ export default function PricingLogisticsCard({
   const removePackage = (index: number) => {
     onPackagesChange(packages.filter((_, i) => i !== index));
   };
+
+  const priceError = showErrors && !(Number(price) > 0);
+  const guestsRangeError =
+    showErrors && minGuests.trim() !== "" && maxGuests.trim() !== "" && Number(minGuests) > Number(maxGuests);
 
   return (
     <div className="rounded-[16px] border border-[#DCCFC0] bg-[#F6ECE0] p-4 md:p-6">
@@ -51,15 +57,20 @@ export default function PricingLogisticsCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-xs text-[#8B7E72] mb-1 block">
-            Base Price (EGP)
+            Base Price (EGP) <span className="text-[#A3391C]">*</span>
           </label>
           <input
             type="number"
             min={0}
             value={price}
             onChange={(e) => onPriceChange(e.target.value)}
-            className="w-full rounded-lg border border-[#DCCFC0] bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C] ${
+              priceError ? "border-[#A3391C]" : "border-[#DCCFC0]"
+            }`}
           />
+          {priceError && (
+            <p className="mt-1 text-xs text-[#A3391C]">Enter a price greater than 0.</p>
+          )}
         </div>
 
         {/* Min/Max Guests — not part of CreateWorkPostDto/UpdateWorkPostDto
@@ -73,7 +84,9 @@ export default function PricingLogisticsCard({
             min={0}
             value={minGuests}
             onChange={(e) => onMinGuestsChange(e.target.value)}
-            className="w-full rounded-lg border border-[#DCCFC0] bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C] ${
+              guestsRangeError ? "border-[#A3391C]" : "border-[#DCCFC0]"
+            }`}
           />
         </div>
 
@@ -86,8 +99,13 @@ export default function PricingLogisticsCard({
             min={0}
             value={maxGuests}
             onChange={(e) => onMaxGuestsChange(e.target.value)}
-            className="w-full rounded-lg border border-[#DCCFC0] bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-[#2B2622] outline-none focus:border-[#A3391C] ${
+              guestsRangeError ? "border-[#A3391C]" : "border-[#DCCFC0]"
+            }`}
           />
+          {guestsRangeError && (
+            <p className="mt-1 text-xs text-[#A3391C]">Max Guests must be greater than or equal to Min Guests.</p>
+          )}
         </div>
       </div>
 

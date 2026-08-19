@@ -67,6 +67,9 @@ export default function VendorRegisterWizard() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
+  // REG-CUS-013: one key per mount, reused across every submit of this
+  // wizard — see RegisterPayload.idempotencyKey.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   // Step 1 extras — not part of RegisterRequest.cs yet.
   const [country, setCountry] = useState("");
@@ -86,12 +89,14 @@ export default function VendorRegisterWizard() {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
 
-  // Step 3 — not part of RegisterRequest.cs yet.
+  // Step 3.
   const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
   const [businessLicenseFile, setBusinessLicenseFile] = useState<File | null>(null);
   const [bankHolder, setBankHolder] = useState("");
   const [bankName, setBankName] = useState("");
   const [iban, setIban] = useState("");
+  // Not part of RegisterRequest.cs yet — no PlanTier concept exists on
+  // VendorProfile/anywhere in the backend, so this stays local-only.
   const [planTier, setPlanTier] = useState("professional");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeVendorAgreement, setAgreeVendorAgreement] = useState(false);
@@ -136,6 +141,10 @@ export default function VendorRegisterWizard() {
         commercialRegistration: commercialRegistrationFile ?? undefined,
         nationalId: nationalIdFile ?? undefined,
         businessLicense: businessLicenseFile ?? undefined,
+        bankName: bankName || undefined,
+        accountName: bankHolder || undefined,
+        accountNumber: iban || undefined,
+        idempotencyKey,
       });
       toast.success("Vendor account details saved. Verify your email next.");
       router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=register`);

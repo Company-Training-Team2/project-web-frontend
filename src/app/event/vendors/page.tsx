@@ -12,7 +12,11 @@ import EventVendorCard from "@/components/client/vendors/EventVendorCard";
 import VendorsTabs, { VendorTab } from "@/components/client/vendors/VendorsTabs";
 import VendorsTopBar from "@/components/client/vendors/VendorsTopBar";
 
-const BOOKED_STATUSES = ["Confirmed", "Completed"];
+// Was ["Confirmed", "Completed"] — "Confirmed" hasn't been a real
+// BookingStatus value since it was renamed to "Accepted" (audit Module 8),
+// and "Paid" was missing too, so a real accepted/paid vendor booking never
+// showed as "booked" here.
+const BOOKED_STATUSES = ["Accepted", "Paid", "Completed"];
 const PENDING_STATUSES = ["Pending"];
 
 function VendorsInner() {

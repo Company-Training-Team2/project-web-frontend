@@ -21,7 +21,7 @@ export default function BookingDetailsTopBar({ booking }: { booking: MockBooking
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <h1 className="font-serif text-[22px] font-bold text-[#252323]">Booking #EH-{booking.id.toUpperCase()}</h1>
-        <StatusPill variant={booking.status === "Confirmed" ? "success" : "neutral"}>{booking.status}</StatusPill>
+        <StatusPill variant={booking.status === "Accepted" || booking.status === "Paid" ? "success" : "neutral"}>{booking.status}</StatusPill>
         <span className="flex items-center gap-1 text-[13px] text-[#6d5d54]">
           <CalendarDays className="size-3.5" />
           {dateLabel}

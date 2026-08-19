@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import OTPInput from "@/components/auth/OTPInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
 
 const schema = z.object({
@@ -38,6 +39,7 @@ type FormData = z.infer<typeof schema>;
  */
 export default function AdminLoginScreen() {
   const router = useRouter();
+  const { setSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
 
@@ -54,7 +56,7 @@ export default function AdminLoginScreen() {
       const result = await authService.adminLogin({ email: data.email, password: data.password });
 
       if (!result.requiresMfa) {
-        authService.saveSession(result.session);
+        setSession(result.session);
         toast.success("Access authorized.");
         router.push("/admin/dashboard");
         return;
@@ -68,7 +70,7 @@ export default function AdminLoginScreen() {
       }
 
       const session = await authService.verifyAdminMfa({ email: result.email, code: data.code });
-      authService.saveSession(session);
+      setSession(session);
       toast.success("Access authorized.");
       router.push("/admin/dashboard");
     } catch (error: unknown) {

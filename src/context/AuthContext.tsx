@@ -20,6 +20,16 @@ interface AuthContextType {
   loginWithApple: (idToken: string, redirectTo?: string) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  /**
+   * Persists an already-obtained session (localStorage) and syncs it into
+   * this context's `user` state. Needed by flows that get their session from
+   * a non-standard path instead of login()/loginWithGoogle()/loginWithApple()
+   * — currently AdminLoginScreen (admin login + MFA verify) — so that
+   * useRequireAdminAuth (which reads isAuthenticated from this context, not
+   * localStorage) sees the login immediately instead of bouncing the user
+   * straight back to /admin/login on the next client-side navigation.
+   */
+  setSession: (data: AuthResponse) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -121,6 +131,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   };
 
+  const setSession = (data: AuthResponse) => {
+    authService.saveSession(data);
+    setUser(data.user);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -132,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginWithApple,
         register,
         logout,
+        setSession,
       }}
     >
       {children}

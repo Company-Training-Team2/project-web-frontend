@@ -8,7 +8,8 @@ import { MockBooking } from "@/lib/mock/types";
 import { parseDateOnly } from "@/lib/date";
 
 const STATUS_STYLE: Record<MockBooking["status"], { label: string; variant: "success" | "warning" | "neutral" }> = {
-  Confirmed: { label: "Confirmed", variant: "success" },
+  Accepted: { label: "Confirmed", variant: "success" },
+  Paid: { label: "Paid", variant: "success" },
   Pending: { label: "Action Required", variant: "warning" },
   Completed: { label: "Completed", variant: "neutral" },
   Cancelled: { label: "Cancelled", variant: "neutral" },

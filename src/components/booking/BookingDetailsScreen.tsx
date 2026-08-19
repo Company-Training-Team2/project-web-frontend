@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { WifiOff } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default function BookingDetailsScreen({ bookingId }: { bookingId: string 
   const [pkg, setPkg] = useState<MockPackage | undefined>(undefined);
   const [isLive, setIsLive] = useState(true);
 
-  useEffect(() => {
+  const refetch = useCallback(() => {
     let cancelled = false;
     bookingService.getMyBookingById(bookingId).then(({ booking: result, isLive: live }) => {
       if (cancelled) return;
@@ -51,6 +51,8 @@ export default function BookingDetailsScreen({ bookingId }: { bookingId: string 
       cancelled = true;
     };
   }, [bookingId]);
+
+  useEffect(() => refetch(), [refetch]);
 
   if (booking === undefined) {
     return <LoadingScreen fullScreen={false} />;
@@ -86,7 +88,7 @@ export default function BookingDetailsScreen({ bookingId }: { bookingId: string 
 
         <div className="space-y-6">
           <VendorMiniCard vendor={vendor} />
-          <PaymentSummaryCard booking={booking} />
+          <PaymentSummaryCard booking={booking} onCancelled={refetch} />
           <NeedAssistanceCard />
         </div>
       </div>

@@ -56,6 +56,9 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Field-level red borders/messages only appear after a first failed
+  // submit attempt — not on initial render, which would just look broken.
+  const [showErrors, setShowErrors] = useState(false);
 
   // Load categories (real GET /api/categories)
   useEffect(() => {
@@ -165,17 +168,23 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
     });
   };
 
-  const isValid =
+  const guestsRangeValid =
+    minGuests.trim() === "" || maxGuests.trim() === "" || Number(minGuests) <= Number(maxGuests);
+
+  const isValid = Boolean(
     basicInfo.title.trim() &&
-    basicInfo.categoryId !== "" &&
-    basicInfo.description.trim() &&
-    basicInfo.city.trim() &&
-    basicInfo.address.trim() &&
-    Number(price) > 0;
+      basicInfo.categoryId !== "" &&
+      basicInfo.description.trim() &&
+      basicInfo.city.trim() &&
+      basicInfo.address.trim() &&
+      Number(price) > 0 &&
+      guestsRangeValid
+  );
 
   const handleSubmit = async () => {
     if (!isValid) {
-      setSubmitError("Fill in the service name, category, description, city, address, and a base price.");
+      setShowErrors(true);
+      setSubmitError("Fix the highlighted fields below before submitting.");
       return;
     }
     setSubmitting(true);
@@ -268,6 +277,7 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
               onChange={(patch) => setBasicInfo((prev) => ({ ...prev, ...patch }))}
               categories={categories}
               categoriesLoading={categoriesLoading}
+              showErrors={showErrors}
             />
             <MediaGalleryCard
               images={images}
@@ -286,6 +296,7 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
               onMinGuestsChange={setMinGuests}
               maxGuests={maxGuests}
               onMaxGuestsChange={setMaxGuests}
+              showErrors={showErrors}
             />
             <AmenitiesCard />
             <PoliciesCard />
@@ -300,6 +311,7 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
               submitting={submitting}
               onSubmit={handleSubmit}
               error={submitError}
+              isFormInvalid={showErrors && !isValid}
             />
             <SeoPreviewCard
               title={basicInfo.title}

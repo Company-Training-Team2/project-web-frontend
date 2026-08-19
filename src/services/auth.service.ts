@@ -32,6 +32,20 @@ export interface RegisterPayload {
   nationalId?: File;
   /** Vendor-only, private — reviewed by admin during KYC approval only. */
   businessLicense?: File;
+  /** Vendor-only — payout details collected on Step 3. Maps to RegisterRequest.cs's BankName. */
+  bankName?: string;
+  /** Vendor-only — account holder name, as it appears on the bank statement. Maps to RegisterRequest.cs's AccountName. */
+  accountName?: string;
+  /** Vendor-only — IBAN or account number. Maps to RegisterRequest.cs's AccountNumber. */
+  accountNumber?: string;
+  /**
+   * REG-CUS-013: Client-generated key (one per registration attempt, held in
+   * the form component's state so retries of the same attempt reuse it —
+   * see RegisterForm/VendorRegisterWizard) that lets the backend collapse
+   * duplicate requests from a rapid double-click or a network-layer retry
+   * into a single account. Maps to RegisterRequest.cs's IdempotencyKey.
+   */
+  idempotencyKey?: string;
 }
 
 export interface ForgotPasswordPayload {
@@ -178,6 +192,10 @@ export const authService = {
     if (payload.commercialRegistration) form.append("commercialRegistration", payload.commercialRegistration);
     if (payload.nationalId) form.append("nationalId", payload.nationalId);
     if (payload.businessLicense) form.append("businessLicense", payload.businessLicense);
+    if (payload.bankName) form.append("bankName", payload.bankName);
+    if (payload.accountName) form.append("accountName", payload.accountName);
+    if (payload.accountNumber) form.append("accountNumber", payload.accountNumber);
+    if (payload.idempotencyKey) form.append("idempotencyKey", payload.idempotencyKey);
 
     // Content-Type explicitly unset (not "multipart/form-data") so the browser
     // fills in the multipart boundary itself — apiClient's default JSON
@@ -224,12 +242,14 @@ export const authService = {
     return { requiresMfa: false, session: toAuthResponse(data) };
   },
 
-  // Real endpoint (POST /auth/admin/mfa/verify) — but it's a backend stub
-  // today: it always replies "MFA verification not yet implemented." and
-  // never actually issues a token (see AuthController.cs). Called for real
-  // anyway so this screen needs no changes once the backend finishes it.
-  async verifyAdminMfa(payload: AdminMfaVerifyPayload): Promise<{ message: string }> {
-    const { data } = await apiClient.post<{ message: string }>("/auth/admin/mfa/verify", payload);
+  // POST /auth/admin/mfa/verify — validates the TOTP code against the
+  // account's MfaSecret and, on success, returns a real session (same
+  // AuthResponse shape as adminLogin's non-MFA branch). Used to be a
+  // backend stub that always replied "MFA verification not yet
+  // implemented." and never issued a token, so admin accounts with MFA
+  // enabled could never actually finish signing in.
+  async verifyAdminMfa(payload: AdminMfaVerifyPayload): Promise<AuthResponse> {
+    const { data } = await apiClient.post<AuthResponse>("/auth/admin/mfa/verify", payload);
     return data;
   },
 

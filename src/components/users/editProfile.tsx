@@ -5,12 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera } from "lucide-react";
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { getUserErrorMessage, userService } from "@/services/user.service";
 
 // Was rendering — the admin executive-portal nav, wrong for a
 // customer settings page (see profileSettings.tsx for the full note). This
 // screen already has its own back-to-/profile top bar below.
+//
+// Also had no auth gate at all (unlike profileSettings.tsx, which links here)
+// — a logged-out visitor could load this form and see/edit the hardcoded
+// "Eleanor St. James" placeholder values below (GET /users/me 401s and is
+// silently swallowed, leaving the placeholders in place). The backend still
+// rejects the actual save (UsersController is [Authorize]), so no real data
+// was ever at risk, but the page had no business being reachable while
+// logged out. useRequireAuth() redirects to /login before that can happen,
+// same as every other customer-only screen.
 export default function EditProfile() {
+  useRequireAuth();
   const router = useRouter();
 
   const [emailNotifications, setEmailNotifications] = useState(true);

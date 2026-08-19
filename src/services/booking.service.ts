@@ -28,7 +28,11 @@ export interface BookingResponse {
   eventId: number;
   workPostId: number;
   bookingDate: string;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled" | "Rejected";
+  // Matches the real BookingStatus enum exactly (Pending/Accepted/Completed/
+  // Cancelled/Rejected/Paid) — was "Confirmed" (stale, pre-rename) and had no
+  // "Paid" at all, so a real Accepted or Paid booking matched nothing
+  // anywhere this type is compared against.
+  status: "Pending" | "Accepted" | "Paid" | "Completed" | "Cancelled" | "Rejected";
   totalPrice: number;
   quantity: number;
   notes?: string;

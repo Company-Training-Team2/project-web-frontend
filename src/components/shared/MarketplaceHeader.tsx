@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Heart, Search, ShoppingBag, X } from "lucide-react";
+import { ArrowLeft, Heart, Search, X } from "lucide-react";
 
 import Logo from "./Logo";
 import MobileNavDrawer from "./MobileNavDrawer";
@@ -106,9 +106,6 @@ export default function MarketplaceHeader({ className }: { className?: string })
 
           <button aria-label="Wishlist" className="text-[#252323] transition hover:text-[#af3718]">
             <Heart className="size-5" />
-          </button>
-          <button aria-label="Cart" className="text-[#252323] transition hover:text-[#af3718]">
-            <ShoppingBag className="size-5" />
           </button>
 
           {isAuthenticated ? (

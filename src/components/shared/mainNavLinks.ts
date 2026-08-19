@@ -14,6 +14,6 @@ export const MAIN_NAV_LINKS: MainNavLink[] = [
   { label: "Marketplace", href: "/vendors/search" },
   { label: "Packages", href: "/home#packages" },
   { label: "Upcoming Events", href: "/home#occasions" },
-  { label: "How It Works", href: "/ai-planner" },
+  { label: "AI Planner", href: "/ai-planner" },
   { label: "Testimonials", href: "/home#testimonials" },
 ];

@@ -32,6 +32,9 @@ export interface RegisterPayload {
   nationalId?: File;
   /** Vendor-only, private — reviewed by admin during KYC approval only. */
   businessLicense?: File;
+  /** Vendor-only, public — up to 10 general storefront photos ("Image
+   * Gallery"). Maps to RegisterRequest.cs's GalleryImages field. */
+  galleryImages?: File[];
   /** Vendor-only — payout details collected on Step 3. Maps to RegisterRequest.cs's BankName. */
   bankName?: string;
   /** Vendor-only — account holder name, as it appears on the bank statement. Maps to RegisterRequest.cs's AccountName. */
@@ -192,6 +195,9 @@ export const authService = {
     if (payload.commercialRegistration) form.append("commercialRegistration", payload.commercialRegistration);
     if (payload.nationalId) form.append("nationalId", payload.nationalId);
     if (payload.businessLicense) form.append("businessLicense", payload.businessLicense);
+    // ASP.NET Core binds repeated form fields sharing one name to a
+    // List<IFormFile> automatically — no index/array syntax needed.
+    payload.galleryImages?.forEach((file) => form.append("galleryImages", file));
     if (payload.bankName) form.append("bankName", payload.bankName);
     if (payload.accountName) form.append("accountName", payload.accountName);
     if (payload.accountNumber) form.append("accountNumber", payload.accountNumber);
@@ -300,5 +306,19 @@ export const authService = {
     localStorage.setItem("token", data.token);
     localStorage.setItem("refreshToken", data.refreshToken);
     localStorage.setItem("user", JSON.stringify(data.user));
+  },
+
+  /**
+   * PROF-002: the cached `user` (localStorage + AuthContext) is only ever
+   * written at login — editing, say, a vendor's Business Name on Edit
+   * Profile updated the real VendorProfile/WorkPost-adjacent record fine,
+   * but every screen reading `user.name` from AuthContext (Dashboard's
+   * greeting, Bookings/Calendar/Analytics top bars) kept showing the name
+   * from whenever they last logged in. Used by AuthContext.updateUserName
+   * to patch just the cached name in place, without a full re-login.
+   */
+  saveUser(user: AuthUser) {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("user", JSON.stringify(user));
   },
 };

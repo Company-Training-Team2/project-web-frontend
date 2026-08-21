@@ -22,6 +22,7 @@ export default function PricingLogisticsCard({
   onMinGuestsChange,
   maxGuests,
   onMaxGuestsChange,
+  incompletePackageIndexes = [],
   showErrors,
 }: {
   mode: "create" | "edit";
@@ -34,6 +35,7 @@ export default function PricingLogisticsCard({
   onMinGuestsChange: (value: string) => void;
   maxGuests: string;
   onMaxGuestsChange: (value: string) => void;
+  incompletePackageIndexes?: number[];
   showErrors: boolean;
 }) {
   const updatePackage = (index: number, patch: Partial<PackageDraft>) => {
@@ -158,42 +160,52 @@ export default function PricingLogisticsCard({
                 Optional — add pricing tiers guests can choose from.
               </p>
             )}
-            {packages.map((pkg, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-[#DCCFC0] bg-white p-2 flex flex-col gap-2"
-              >
-                <div className="flex items-center gap-2">
+            {packages.map((pkg, i) => {
+              const incomplete = showErrors && incompletePackageIndexes.includes(i);
+              return (
+                <div
+                  key={i}
+                  className={`rounded-lg border bg-white p-2 flex flex-col gap-2 ${
+                    incomplete ? "border-[#A3391C]" : "border-[#DCCFC0]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={pkg.name}
+                      onChange={(e) => updatePackage(i, { name: e.target.value })}
+                      placeholder="Tier name (e.g. Silver Package)"
+                      className="flex-1 min-w-0 rounded-md border border-[#DCCFC0] px-2 py-1.5 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={pkg.price}
+                      onChange={(e) => updatePackage(i, { price: e.target.value })}
+                      placeholder="Price"
+                      className="w-24 shrink-0 rounded-md border border-[#DCCFC0] px-2 py-1.5 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePackage(i)}
+                      className="shrink-0 text-[#8B716A] hover:text-[#A3391C]"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                   <input
-                    value={pkg.name}
-                    onChange={(e) => updatePackage(i, { name: e.target.value })}
-                    placeholder="Tier name (e.g. Silver Package)"
-                    className="flex-1 min-w-0 rounded-md border border-[#DCCFC0] px-2 py-1.5 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
+                    value={pkg.includes}
+                    onChange={(e) => updatePackage(i, { includes: e.target.value })}
+                    placeholder="What's included (e.g. Catering, décor, DJ)"
+                    className="w-full rounded-md border border-[#DCCFC0] px-2 py-1.5 text-xs text-[#2B2622] outline-none focus:border-[#A3391C]"
                   />
-                  <input
-                    type="number"
-                    min={0}
-                    value={pkg.price}
-                    onChange={(e) => updatePackage(i, { price: e.target.value })}
-                    placeholder="Price"
-                    className="w-24 shrink-0 rounded-md border border-[#DCCFC0] px-2 py-1.5 text-sm text-[#2B2622] outline-none focus:border-[#A3391C]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePackage(i)}
-                    className="shrink-0 text-[#8B716A] hover:text-[#A3391C]"
-                  >
-                    <X size={16} />
-                  </button>
+                  {incomplete && (
+                    <p className="text-xs text-[#A3391C]">
+                      This tier needs both a name and a price greater than 0, or remove it.
+                    </p>
+                  )}
                 </div>
-                <input
-                  value={pkg.includes}
-                  onChange={(e) => updatePackage(i, { includes: e.target.value })}
-                  placeholder="What's included (e.g. Catering, décor, DJ)"
-                  className="w-full rounded-md border border-[#DCCFC0] px-2 py-1.5 text-xs text-[#2B2622] outline-none focus:border-[#A3391C]"
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

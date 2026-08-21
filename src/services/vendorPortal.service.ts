@@ -188,6 +188,9 @@ export interface VendorProfile {
   bankName?: string;
   accountName?: string;
   accountNumber?: string;
+  /** General storefront gallery photos (up to 10), collected at
+   * registration Step 2 — see VendorPortfolioImage. */
+  portfolioImageUrls: string[];
 }
 
 // LogoUrl deliberately not here — the backend no longer accepts a free-text

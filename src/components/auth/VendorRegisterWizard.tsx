@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,14 +13,41 @@ import AuthCard from "./AuthCard";
 import FormField from "./FormField";
 import PasswordInput from "./PasswordInput";
 import UploadField from "./UploadField";
+import GalleryUploadField from "./GalleryUploadField";
 import CategoryChipSelect from "./CategoryChipSelect";
 import PlanTierCard, { VENDOR_PLAN_TIERS } from "./PlanTierCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { authService, getAuthErrorMessage } from "@/services/auth.service";
+import { categoriesService, Category } from "@/services/categories.service";
 
 const STEP_LABELS = ["Account Information", "Profile Setup", "Verification & Finish"];
+
+// REG-VEN-036: "Maximum Capacity (Guests)" stayed on screen no matter which
+// category was selected — the QA report's example was Makeup Artist, where
+// a guest-capacity number doesn't apply at all. Scoped to just this one
+// field (the only one an actual test case named) rather than guessing a
+// full category→field matrix with nothing specifying the rest of it. Shown
+// whenever any of the vendor's selected categories is capacity-relevant.
+//
+// Keyword substring match, not an exact-name Set: the live category names
+// (GET /api/categories against the real deployed DB) turned out to be
+// Arabic strings ("قاعات وأندية أفراح", "بوفيه وكب كيك وكاترينج", ...) that
+// don't match the English seed data ("Venue", "Catering", ...) in this
+// repo's migrations at all — that seed data has clearly been edited
+// directly on the live database since. Matching on "venue/hall/قاعة" and
+// "catering/buffet/كاترينج/بوفيه" as substrings is resilient to that kind
+// of wording drift in a way an exact-name Set isn't.
+const CAPACITY_RELEVANT_KEYWORDS = [
+  "venue", "hall", "قاعة", "قاعات",
+  "catering", "buffet", "كاترينج", "بوفيه",
+  "planning", "تنظيم",
+];
+const isCapacityRelevantCategory = (name: string) => {
+  const lower = name.toLowerCase();
+  return CAPACITY_RELEVANT_KEYWORDS.some((kw) => lower.includes(kw));
+};
 
 // businessName/ownerName/email/phone/password/confirmPassword map to real
 // RegisterRequest.cs fields (Email, Password, ConfirmPassword, Role,
@@ -65,7 +92,35 @@ type FormData = z.infer<typeof schema>;
  * is the one exception, still visual-only (see its own comment below). */
 export default function VendorRegisterWizard() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // REG-VEN-032: step lived only in local state, with the URL staying at a
+  // bare /register?role=vendor throughout — so there was no browser-history
+  // entry per step for the Back button to land on. One press of Back from
+  // step 2 or 3 fell straight past the whole wizard to whatever was in
+  // history before it (role-selection), restarting the flow. Mirroring step
+  // into a ?step= param and pushing a history entry on every transition
+  // makes Back step back through 3→2→1 like any other multi-step flow, and
+  // this effect keeps local `step` in sync when the *browser's* Back/Forward
+  // is what changes the URL (rather than goNext/goBack below).
+  const stepFromUrl = (() => {
+    const s = Number(searchParams.get("step"));
+    return s === 2 || s === 3 ? (s as 2 | 3) : 1;
+  })();
+  const [step, setStep] = useState<1 | 2 | 3>(stepFromUrl);
+  useEffect(() => {
+    setStep(stepFromUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepFromUrl]);
+
+  const goToStep = (next: 1 | 2 | 3) => {
+    setStep(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("step", String(next));
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   // REG-CUS-013: one key per mount, reused across every submit of this
   // wizard — see RegisterPayload.idempotencyKey.
@@ -81,6 +136,7 @@ export default function VendorRegisterWizard() {
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [experienceYears, setExperienceYears] = useState("");
   const [teamSize, setTeamSize] = useState("");
   const [startingPrice, setStartingPrice] = useState("");
@@ -88,6 +144,23 @@ export default function VendorRegisterWizard() {
   const [address, setAddress] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
+
+  // REG-VEN-036: fetched here (not just inside CategoryChipSelect) because
+  // deciding whether to show Maximum Capacity needs each selected id's
+  // *name*, not just the id CategoryChipSelect already tracks.
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  useEffect(() => {
+    categoriesService.getAll().then(setAllCategories).catch(() => setAllCategories([]));
+  }, []);
+
+  const showCapacityField = categories.some((id) => {
+    const category = allCategories.find((c) => String(c.id) === id);
+    return category ? isCapacityRelevantCategory(category.name) : false;
+  });
+  useEffect(() => {
+    if (!showCapacityField && maxCapacity) setMaxCapacity("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCapacityField]);
 
   // Step 3.
   const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
@@ -114,10 +187,10 @@ export default function VendorRegisterWizard() {
       const valid = await trigger(["businessName", "ownerName", "email", "phone", "password", "confirmPassword"]);
       if (!valid) return;
     }
-    setStep((s) => (s === 3 ? 3 : ((s + 1) as 1 | 2 | 3)));
+    goToStep(step === 3 ? 3 : ((step + 1) as 1 | 2 | 3));
   };
 
-  const goBack = () => setStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2 | 3)));
+  const goBack = () => goToStep(step === 1 ? 1 : ((step - 1) as 1 | 2 | 3));
 
   const onSubmit = handleSubmit(async (data) => {
     if (!agreeTerms || !agreeVendorAgreement) {
@@ -138,6 +211,7 @@ export default function VendorRegisterWizard() {
         categoryIds: categories.length > 0 ? categories.map(Number) : undefined,
         businessLogo: businessLogoFile ?? undefined,
         coverImage: coverImageFile ?? undefined,
+        galleryImages: galleryFiles.length > 0 ? galleryFiles : undefined,
         commercialRegistration: commercialRegistrationFile ?? undefined,
         nationalId: nationalIdFile ?? undefined,
         businessLicense: businessLicenseFile ?? undefined,
@@ -292,6 +366,7 @@ export default function VendorRegisterWizard() {
                   label="Commercial Registration"
                   hint="Upload PDF or JPG (Max 5MB)"
                   accept="application/pdf,image/jpeg"
+                  value={commercialRegistrationFile}
                   onFileChange={setCommercialRegistrationFile}
                 />
                 <UploadField
@@ -299,6 +374,7 @@ export default function VendorRegisterWizard() {
                   label="Business Logo"
                   hint="Upload High-Res Logo"
                   accept="image/*"
+                  value={businessLogoFile}
                   onFileChange={setBusinessLogoFile}
                 />
               </div>
@@ -359,16 +435,18 @@ export default function VendorRegisterWizard() {
                       className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
                     />
                   </FormField>
-                  <FormField id="maxCapacity" label="Maximum Capacity (Guests)">
-                    <Input
-                      id="maxCapacity"
-                      type="number"
-                      placeholder="e.g. 300"
-                      value={maxCapacity}
-                      onChange={(e) => setMaxCapacity(e.target.value)}
-                      className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
-                    />
-                  </FormField>
+                  {showCapacityField ? (
+                    <FormField id="maxCapacity" label="Maximum Capacity (Guests)">
+                      <Input
+                        id="maxCapacity"
+                        type="number"
+                        placeholder="e.g. 300"
+                        value={maxCapacity}
+                        onChange={(e) => setMaxCapacity(e.target.value)}
+                        className="h-[48px] rounded-[10px] border border-[#ded8d2] bg-white px-[14px] text-[15px]"
+                      />
+                    </FormField>
+                  ) : null}
                 </div>
 
                 <FormField id="address" label="Business Address">
@@ -413,14 +491,22 @@ export default function VendorRegisterWizard() {
                   label="Cover Image"
                   hint="Click to upload or drag and drop (PNG, JPG up to 10MB)"
                   accept="image/*"
+                  value={coverImageFile}
                   onFileChange={setCoverImageFile}
                 />
-                {/* Not wired yet: a portfolio gallery needs its own multi-image
-                    table (like WorkPostImage, but for a VendorProfile with no
-                    WorkPost yet) that doesn't exist on the backend. Left as a
-                    visual-only field rather than silently dropping a selected
-                    file - flagging this honestly instead of pretending it saves. */}
-                <UploadField id="gallery" label="Image Gallery (up to 10) — coming soon" hint="Add photos" accept="image/*" />
+                {/* REG-VEN-034/035/037: now backed for real by
+                    VendorPortfolioImage (see AuthService.RegisterAsync's
+                    GalleryImages handling) — was visual-only with no table
+                    to save into and a single-file input mislabeled "up to
+                    10". */}
+                <GalleryUploadField
+                  id="gallery"
+                  label="Image Gallery"
+                  hint="Add photo"
+                  files={galleryFiles}
+                  onFilesChange={setGalleryFiles}
+                  max={10}
+                />
               </div>
             ) : null}
 
@@ -444,6 +530,7 @@ export default function VendorRegisterWizard() {
                     label="National ID or Passport"
                     hint="JPEG, PNG or PDF (Max 5MB)"
                     accept="application/pdf,image/*"
+                    value={nationalIdFile}
                     onFileChange={setNationalIdFile}
                   />
                   <UploadField
@@ -451,6 +538,7 @@ export default function VendorRegisterWizard() {
                     label="Business License"
                     hint="JPEG, PNG or PDF (Max 5MB)"
                     accept="application/pdf,image/*"
+                    value={businessLicenseFile}
                     onFileChange={setBusinessLicenseFile}
                   />
                 </div>
@@ -514,7 +602,24 @@ export default function VendorRegisterWizard() {
                 <div className="space-y-2">
                   <label className="flex items-start gap-2 text-[13px] text-[#6d5d54]">
                     <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-0.5 size-4 accent-[#af3718]" />
-                    I agree to EventHub&apos;s <Link href="/terms" className="font-medium text-[#af3718]">Terms &amp; Conditions</Link> and Privacy Policy.
+                    {/* REG-VEN-025: "Privacy Policy" was plain text here, not a
+                        link at all — nothing happened when clicked.
+                        REG-VEN-026: Terms & Conditions *was* a same-tab Link,
+                        which navigated the whole wizard away — since none of
+                        its step/field/file state is persisted anywhere
+                        (sessionStorage, URL, etc.), that unmounted the wizard
+                        and lost everything entered so far. Both open in a new
+                        tab now instead, so the registration tab itself never
+                        navigates and nothing is lost. */}
+                    I agree to EventHub&apos;s{" "}
+                    <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-[#af3718]">
+                      Terms &amp; Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[#af3718]">
+                      Privacy Policy
+                    </Link>
+                    .
                   </label>
                   <label className="flex items-start gap-2 text-[13px] text-[#6d5d54]">
                     <input type="checkbox" checked={agreeVendorAgreement} onChange={(e) => setAgreeVendorAgreement(e.target.checked)} className="mt-0.5 size-4 accent-[#af3718]" />

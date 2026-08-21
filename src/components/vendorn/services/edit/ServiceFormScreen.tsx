@@ -173,6 +173,21 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
   const guestsRangeValid =
     minGuests.trim() === "" || maxGuests.trim() === "" || Number(minGuests) <= Number(maxGuests);
 
+  // SERV-016: the create payload only ever included packages where
+  // `p.name.trim() && Number(p.price) > 0` — a tier with a name typed in
+  // but the price left blank (or vice versa) was silently dropped with no
+  // indication anything was wrong, which read as "Add Tier accepts input
+  // but the tier is never saved." A fully blank, untouched row is fine to
+  // drop quietly; a row the vendor actually started filling in is not.
+  const incompletePackageIndexes = packages
+    .map((p, i) => i)
+    .filter((i) => {
+      const p = packages[i];
+      const hasName = p.name.trim() !== "";
+      const hasPrice = p.price.trim() !== "" && Number(p.price) > 0;
+      return hasName !== hasPrice;
+    });
+
   const isValid = Boolean(
     basicInfo.title.trim() &&
       basicInfo.categoryId !== "" &&
@@ -180,13 +195,18 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
       basicInfo.city.trim() &&
       basicInfo.address.trim() &&
       Number(price) > 0 &&
-      guestsRangeValid
+      guestsRangeValid &&
+      incompletePackageIndexes.length === 0
   );
 
   const handleSubmit = async () => {
     if (!isValid) {
       setShowErrors(true);
-      setSubmitError("Fix the highlighted fields below before submitting.");
+      setSubmitError(
+        incompletePackageIndexes.length > 0
+          ? "Each pricing tier needs both a name and a price greater than 0 — fill both in or remove the tier."
+          : "Fix the highlighted fields below before submitting."
+      );
       return;
     }
     setSubmitting(true);
@@ -302,6 +322,7 @@ export default function ServiceFormScreen({ serviceId }: { serviceId?: number })
               onMinGuestsChange={setMinGuests}
               maxGuests={maxGuests}
               onMaxGuestsChange={setMaxGuests}
+              incompletePackageIndexes={incompletePackageIndexes}
               showErrors={showErrors}
             />
             <AmenitiesCard />

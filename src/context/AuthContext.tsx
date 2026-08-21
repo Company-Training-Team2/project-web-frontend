@@ -30,6 +30,13 @@ interface AuthContextType {
    * straight back to /admin/login on the next client-side navigation.
    */
   setSession: (data: AuthResponse) => void;
+  /**
+   * PROF-002: patches just `user.name` in both this context's state and
+   * localStorage, so a Business Name (vendor) / Full Name (customer) edit
+   * propagates immediately everywhere `user.name` is read from — without
+   * requiring a full re-login for the cached session to catch up.
+   */
+  updateUserName: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -136,6 +143,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
+  const updateUserName = (name: string) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, name };
+      authService.saveUser(updated);
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -148,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         setSession,
+        updateUserName,
       }}
     >
       {children}

@@ -27,7 +27,7 @@ import ProfileEditForm from "./ProfileEditForm";
 
 export default function VendorProfileScreen() {
   const { isVendor, isLoading: authLoading } = useRequireVendorAuth();
-  const { user } = useAuth();
+  const { user, updateUserName } = useAuth();
 
   const [profile, setProfile] = useState<VendorProfile | null>(null);
   const [dashboard, setDashboard] = useState<VendorDashboard | null>(null);
@@ -66,6 +66,11 @@ export default function VendorProfileScreen() {
       const updated = await vendorPortalService.updateProfile(payload);
       setProfile(updated);
       setEditing(false);
+      // PROF-002: Dashboard's greeting and the Bookings/Calendar/Analytics
+      // top bars all read user.name from AuthContext, not from this
+      // profile fetch — without this they kept showing the business name
+      // from whenever the vendor last logged in.
+      if (updated.businessName) updateUserName(updated.businessName);
     } catch (err) {
       setSaveError(getVendorPortalErrorMessage(err, "Couldn't save your profile."));
     } finally {
@@ -123,7 +128,7 @@ export default function VendorProfileScreen() {
                 reviewCount={dashboard.reviewCount}
               />
               <ProfileAbout bioDescription={profile.bioDescription} />
-              <ProfilePortfolio services={services} />
+              <ProfilePortfolio services={services} portfolioImageUrls={profile?.portfolioImageUrls} />
               <ProfilePackages services={services} />
             </div>
 
